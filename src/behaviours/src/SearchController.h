@@ -37,6 +37,12 @@ private:
   Point currentLocation;
   Point centerLocation;
   Point searchLocation;
+
+//NEW  VARIABLES
+  float r = 0;
+  float theta;
+//Added integer
+  float a = 0;
   int attemptCount = 0;
   //struct for returning data to ROS adapter
   Result result;
@@ -45,6 +51,8 @@ private:
   // Flag to allow special behaviour for the first waypoint
   bool first_waypoint = true;
   bool succesfullPickup = false;
+	//defined home
+  bool home = true;
 };
 
 #endif /* SEARCH_CONTROLLER */
