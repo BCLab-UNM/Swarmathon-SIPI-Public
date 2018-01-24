@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="arduino_dev"/>
+	<arg name="gps_dev"/>
+	<arg name="name"/>
+
+	<node pkg="ublox_gps" type="ublox_gps" name="$(arg name)_UBLOX">
+		<param name="device" value="$(arg gps_dev)"/>
+		<param name="frame_id" value="$(arg name)/base_link"/>
+<!--		<param name="fix_mode" value="2d"/> -->
+		<remap from="$(arg name)_UBLOX/fix" to="$(arg name)/fix"/>
+		<remap from="$(arg name)_UBLOX/fix_velocity" to="$(arg name)/fix_velocity"/>
+	</node>
+
+  <node pkg="abridge" type="abridge" name="$(arg name)_ABRIDGE" output="screen">
+		<param name="device" value="$(arg arduino_dev)"/>
+	</node>
+	<node pkg="usb_cam" type="usb_cam_node" name="$(arg name)_CAMERA" output="screen">
+		<param name="image_width" value="320"/>
+		<param name="image_height" value="240"/>
+		<param name="camera_info_url" value="file://$(find swarmie)/camera_info/head_camera.yaml"/>
+		<param name="framerate" value="10"/>
+		<remap from="$(arg name)_CAMERA/image_raw" to="$(arg name)/camera/image"/> -->
+		<remap from="$(arg name)_CAMERA/camera_info" to="$(arg name)/camera/camera_info"/> -->
+	</node>
+	<include file="$(find swarmie)/launch/swarmie.launch">
+		<arg name="name" value="$(arg name)"/>
+	</include>
+</launch>
