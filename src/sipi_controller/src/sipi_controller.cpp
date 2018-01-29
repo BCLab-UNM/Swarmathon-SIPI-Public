@@ -19,20 +19,19 @@
 #include <apriltags_ros/AprilTagDetectionArray.h>
 
 // Include Controllers
-#include "DrivingController.h"
-#include "PickUpController.h"
-#include "DropOffController.h"
-#include "SearchController.h"
-#include "ObstacleController.h"
-#include "GripperController.h"
-#include "FindHomeController.h"
-#include "AvoidHome.h"
-#include "Localization.h"
-#include "targetFunctions.h"
+#include "sipi_controller/DrivingController.h"
+#include "sipi_controller/PickUpController.h"
+#include "sipi_controller/DropOffController.h"
+#include "sipi_controller/SearchController.h"
+#include "sipi_controller/ObstacleController.h"
+#include "sipi_controller/GripperController.h"
+#include "sipi_controller/FindHomeController.h"
+#include "sipi_controller/AvoidHome.h"
+#include "sipi_controller/Localization.h"
+#include "sipi_controller/targetFunctions.h"
 
 // To handle shutdown signals so the node quits
 // properly in response to "rosnode kill"
-#include <ros/ros.h>
 #include <signal.h>
 
 #define PICKUP_TIMEOUT 20

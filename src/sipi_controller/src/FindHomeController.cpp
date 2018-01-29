@@ -1,4 +1,4 @@
-#include "FindHomeController.h"
+#include "sipi_controller/FindHomeController.h"
 //  This is a constructor.  it gets called when the program first runs.
 // this is where we need to create the list of goals. 
 FindHomeController::FindHomeController() {

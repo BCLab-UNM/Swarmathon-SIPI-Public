@@ -1,4 +1,4 @@
-#include "SearchController.h"
+#include "sipi_controller/SearchController.h"
 
 #define MAX_DIST 5  // how far from center to go
 #define MAX_DIST_FINALS 8  // how far from center to go

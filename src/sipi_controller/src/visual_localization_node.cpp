@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include "VisualLocalization.h"
+#include "sipi_controller/VisualLocalization.h"
 using namespace std;
 int main(int argc, char **argv) {
 	char host[128];

@@ -1,4 +1,4 @@
-#include "GripperController.h"
+#include "sipi_controller/GripperController.h"
 #include <std_msgs/Float32.h>
 #define FINGER_OPEN_VALUE 0
 #define FINGER_CLOSED_VALUE M_PI_2

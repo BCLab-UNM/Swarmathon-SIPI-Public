@@ -1,7 +1,7 @@
-#include "PickUpController.h"
+#include "sipi_controller/PickUpController.h"
 #include <iostream>
 #include <iostream>
-#include "GripperController.h"
+#include "sipi_controller/GripperController.h"
 // offset to center of screen in X
 #define X_OFFSET 0.054
 #define X_TOLERANCE 0.02

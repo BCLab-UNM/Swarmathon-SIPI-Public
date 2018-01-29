@@ -1,4 +1,4 @@
-#include "DrivingController.h"
+#include "sipi_controller/DrivingController.h"
 #include <angles/angles.h>
 
 #define MIN_DIST_TO_GOAL 0.4
