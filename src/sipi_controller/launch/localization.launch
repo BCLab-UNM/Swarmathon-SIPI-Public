@@ -1,4 +1,6 @@
+<?xml version="1.0"?>
 <launch>
+	<arg name="name"/>
   <node pkg="robot_localization" type="ekf_localization_node" name="$(arg name)_MAP">
 
       <param name="odom0" value="/$(arg name)/odom/navsat" />

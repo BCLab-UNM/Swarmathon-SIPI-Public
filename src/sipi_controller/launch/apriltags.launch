@@ -1,4 +1,6 @@
+<?xml version="1.0"?>
 <launch>
+	<arg name="name"/>
 
   <node pkg="apriltags_ros" type="apriltag_detector_node" name="$(arg name)_APRILTAG">
 

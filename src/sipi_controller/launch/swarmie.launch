@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="name"/>
+  <param name="tf_prefix" value="$(arg name)" />
+
+  <node name="$(arg name)_BASE2CAM" pkg="tf" 
+    type="static_transform_publisher" 
+    args="0.12 -0.03 0.195 -1.57 0 -2.22 $(arg name)/base_link $(arg name)/camera_link 100" />
+  <node name="$(arg name)_DIAGNOSTICS" pkg="diagnostics" 
+    type="diagnostics" args="$(arg name)" />
+  <node name="$(arg name)_BEHAVIOUR" pkg="sipi_controller" 
+    type="sipi_controller" args="$(arg name)" output="screen"/>
+  <node name="$(arg name)_OBSTACLE" pkg="obstacle_detection" 
+    type="obstacle" args="$(arg name)" />
+
+  <include file="$(find sipi_controller)/launch/navsat.launch">
+		<arg name="name" value="$(arg name)"/>
+	</include>
+  <include file="$(find sipi_controller)/launch/localization.launch">
+		<arg name="name" value="$(arg name)"/>
+	</include>
+  <include file="$(find sipi_controller)/launch/apriltags.launch">
+		<arg name="name" value="$(arg name)"/>
+	</include>
+  <node name="$(arg name)_TEMP" pkg="tf" 
+    type="static_transform_publisher" 
+    args="0 0 0 0 0 0 $(arg name)/odom $(arg name)/arena 100" />
+  <node name="$(arg name)_TEMP2" pkg="tf" 
+    type="static_transform_publisher" 
+    args="0 0 0 0 0 0 $(arg name)/odom $(arg name)/base_link 100" />
+</launch>
