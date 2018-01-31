@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
   launch file to run swarmie code on real hardware
-  must run abridge, ublox and camera in th ereal hardware 
+  must run abridge, ublox and camera in the real hardware 
   and then runs the base swarmie.launch to start the 
   other nodes.
 
