@@ -25,7 +25,7 @@ void USBSerial::openUSBPort(string devicePath, int baud) {
     tcsetattr(usbFileDescriptor, TCSANOW, &ioStruct);
 }
 
-void USBSerial::sendData(char data[]) {
+void USBSerial::sendData(const char data[]) {
     sprintf(dataOut, "%s", data);
     write(usbFileDescriptor, dataOut, sizeof (dataOut));
     memset(&dataOut, '\0', sizeof (dataOut));

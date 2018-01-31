@@ -19,7 +19,7 @@
 
 // maximum +/- limits for velocity commands
 #define MAX_LIN_VEL_CMD 0.3  // m/s
-#define MAX_ANG_VEL_CMD 0.5  // rad/s
+#define MAX_ANG_VEL_CMD 1.0  // rad/s
 // maximum safe value to write to motor controller
 #define MAX_MOTOR_CMD 120
 
@@ -60,6 +60,16 @@ char host[128];
 const float deltaTime = 0.1; //abridge's update interval
 int currentMode = 0;
 string publishedName;
+float fingerAngle_cmd = 0.0;
+float wristAngle_cmd = 0.0;
+int motor_left = 0;
+int motor_right = 0;
+float Kp = 100;
+float Kp_turn = 10;
+float Ki = 40.0;
+float Ki_turn = 20.0;
+float int_err_vx = 0.0;
+float int_err_vz = 0.0;
 
 float heartbeat_publish_interval = 2;
 
@@ -97,6 +107,11 @@ int main(int argc, char **argv) {
   ros::NodeHandle param("~");
   string devicePath;
   param.param("device", devicePath, string("/dev/ttyUSB0"));
+/*
+  param.param("Kp", Kp, 200.0);
+  param.param("Kp_turn", Kp_turn, 200.0);
+  param.param("Ki", Ki, 1.0);
+*/
   usb.openUSBPort(devicePath, baud);
 
   sleep(5);
@@ -167,60 +182,70 @@ float limit(float val, float max) {
 void driveCommandHandler(const geometry_msgs::Twist::ConstPtr& message) {
   cmd_vel_msg = *message;
   cmd_vel_msg.linear.x = limit(cmd_vel_msg.linear.x, MAX_LIN_VEL_CMD); 
-  cmd_vel_msg.angular.z = limit(cmd_vel_msg.angular.z, MAX_LIN_VEL_CMD); 
+  cmd_vel_msg.angular.z = limit(cmd_vel_msg.angular.z, MAX_ANG_VEL_CMD); 
 }
-
 void calculateMotorCommands(void) {
   // Cap motor commands at 120. Experimentally determined that 
   // high values (tested 180 and 255) can cause 
   // the hardware to fail when the robot moves itself too violently.
 
   // limit motor commands to safe maximum value
-  geometry_msgs::Twist err;
-  err.linear.x = odom.twist.twist.linear.x - cmd_vel_msg.linear.x;
-  err.angular.z = odom.twist.twist.angular.z - cmd_vel_msg.angular.z;
-  float Kp = 10;
-  float Ki = 10;
-  int vx = err.linear.x * Kp;
-  int vz = err.angular.z * Kp;
+  if (cmd_vel_msg.linear.x == 0 && cmd_vel_msg.angular.z == 0) {
+    motor_left = motor_right = 0;
+    int_err_vx = int_err_vz = 0.0;
+  } else {
+    geometry_msgs::Twist err;
+    err.linear.x = cmd_vel_msg.linear.x - odom.twist.twist.linear.x;
+    err.angular.z = cmd_vel_msg.angular.z - odom.twist.twist.angular.z;
+    int_err_vx += err.linear.x; 
+    int_err_vz += err.angular.z; 
+    int vx = err.linear.x * Kp + int_err_vx * Ki;
+    int vz = err.angular.z * Kp_turn + int_err_vz * Ki_turn;;
+    vz = limit(vz, 100); 
   
-  int motor_left = vx - vz;
-  int motor_right = vx + vz;
+    motor_left = limit(vx - vz, MAX_MOTOR_CMD);
+    motor_right = limit(vx + vz, MAX_MOTOR_CMD);
+    ROS_INFO_STREAM("vel="<<odom.twist.twist.linear.x<<","
+      <<odom.twist.twist.angular.z<< " err:"<<err.linear.x 
+      << ","<<err.angular.z<<" int_err_vx= "<<int_err_vx
+      <<" vx="<<vx<<" vz="<<vz);
+  }
+}
 
-  //format data for arduino into c string
-  sprintf(moveCmd, "v,%d,%d\n", motor_left, motor_right); 
-  usb.sendData(moveCmd);       //send movement command to arduino over usb
+void sendToArduino(void) {
+  ostringstream os;
+  // motor command
+  // sprintf(moveCmd, "v,%d,%d\n", motor_left, motor_right); 
+  os << "v," << motor_left << "," << motor_right << "\n";
+  usb.sendData(os.str().c_str());
+  ROS_INFO_STREAM(os.str());
+  usleep(1000);
+  os.str(string());
+  // finger command
+  //  sprintf(cmd, "f,%.4g\n", angle->data);
+  os << "f," << fingerAngle_cmd << "\n";
+  // wrist command
+  os << "w," << wristAngle_cmd << "\n";
+  usb.sendData(os.str().c_str());
+  //ROS_INFO_STREAM(os.str());
 }
 
 // The finger and wrist handlers receive gripper angle commands in 
 // floating point
-// radians, write them to a string and send that to the arduino
-// for processing.
 void fingerAngleHandler(const std_msgs::Float32::ConstPtr& angle) {
-  char cmd[16]={'\0'};
-
-  // Avoid dealing with negative exponents which confuse the conversion to string by checking if the angle is small
   if (angle->data < 0.01) {
-    // 'f' indicates this is a finger command to the arduino
-    sprintf(cmd, "f,0\n");
+    fingerAngle_cmd = 0.0;
   } else {
-    sprintf(cmd, "f,%.4g\n", angle->data);
+    fingerAngle_cmd = angle->data;
   }
-  usb.sendData(cmd);
 }
 
 void wristAngleHandler(const std_msgs::Float32::ConstPtr& angle) {
-
-  char cmd[16]={'\0'};
-
-  // Avoid dealing with negative exponents which confuse the conversion to string by checking if the angle is small
   if (angle->data < 0.01) {
-    // 'w' indicates this is a wrist command to the arduino
-    sprintf(cmd, "w,0\n");
+    wristAngle_cmd = 0.0;
   } else {
-    sprintf(cmd, "w,%.4g\n", angle->data);
+    wristAngle_cmd = angle->data;
   }
-  usb.sendData(cmd);
 }
 
 void serialActivityTimer(const ros::TimerEvent& e) {
@@ -228,6 +253,7 @@ void serialActivityTimer(const ros::TimerEvent& e) {
   parseData(usb.readData());
   publishRosTopics();
   calculateMotorCommands();
+  sendToArduino();
 }
 
 void publishRosTopics() {
