@@ -219,15 +219,6 @@ void sendToArduino(void) {
   os << "v," << motor_left << "," << motor_right << "\n";
   usb.sendData(os.str().c_str());
   ROS_INFO_STREAM(os.str());
-  usleep(1000);
-  os.str(string());
-  // finger command
-  //  sprintf(cmd, "f,%.4g\n", angle->data);
-  os << "f," << fingerAngle_cmd << "\n";
-  // wrist command
-  os << "w," << wristAngle_cmd << "\n";
-  usb.sendData(os.str().c_str());
-  //ROS_INFO_STREAM(os.str());
 }
 
 // The finger and wrist handlers receive gripper angle commands in 
@@ -238,6 +229,7 @@ void fingerAngleHandler(const std_msgs::Float32::ConstPtr& angle) {
   } else {
     fingerAngle_cmd = angle->data;
   }
+  //finger_update = true;
 }
 
 void wristAngleHandler(const std_msgs::Float32::ConstPtr& angle) {
@@ -246,10 +238,18 @@ void wristAngleHandler(const std_msgs::Float32::ConstPtr& angle) {
   } else {
     wristAngle_cmd = angle->data;
   }
+  //wrist_update = true;
 }
 
 void serialActivityTimer(const ros::TimerEvent& e) {
-  usb.sendData(dataCmd);
+  ostringstream os;
+  // finger command
+  os << "f," << fingerAngle_cmd << "\n";
+  // wrist command
+  os << "w," << wristAngle_cmd << "\n";
+  os << "d\n";
+  usb.sendData(os.str().c_str());
+  ROS_INFO_STREAM(os.str());
   parseData(usb.readData());
   publishRosTopics();
   calculateMotorCommands();

@@ -429,7 +429,7 @@ void mobilityStateMachine(const ros::TimerEvent&) {
   //		vel.linear = 0.0;
   }
    */
-  sendDriveCommand(vel);
+  //sendDriveCommand(vel);
   gripperController->move(grip);
   publishState();
 }

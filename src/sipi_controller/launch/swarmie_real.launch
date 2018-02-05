@@ -25,7 +25,7 @@
 		<remap from="$(arg name)_UBLOX/fix_velocity" to="$(arg name)/fix_velocity"/>
 	</node>
 
-  <node pkg="abridge" type="abridge" name="$(arg name)_ABRIDGE" output="screen">
+  <node pkg="sipi_controller" type="abridge" name="$(arg name)_ABRIDGE" output="screen">
 		<param name="device" value="$(arg arduino_dev)"/>
 	</node>
 	<include file="$(find sipi_controller)/launch/camera.launch">
