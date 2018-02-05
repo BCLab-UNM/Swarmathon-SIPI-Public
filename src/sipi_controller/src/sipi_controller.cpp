@@ -437,7 +437,7 @@ void mobilityStateMachine(const ros::TimerEvent&) {
   //		vel.linear = 0.0;
   }
    */
-  //sendDriveCommand(vel);
+  sendDriveCommand(vel);
   gripperController->move(grip);
   publishState();
 }
@@ -460,7 +460,7 @@ void publishState(void)
     case STATE_MACHINE_MANUAL: 
       ss << "MANUAL: " << 
         std::setprecision(1) << 
-        stateRunTime << " Mode= " << currentMode
+        stateRunTime.toSec() << " Mode= " << currentMode
         << poses.str();
       break;
     case STATE_MACHINE_INIT: 
