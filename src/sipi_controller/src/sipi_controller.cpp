@@ -61,6 +61,7 @@ ros::Publisher stateMachinePublish;
 ros::Publisher status_publisher;
 ros::Publisher infoLogPublisher;
 ros::Publisher driveControlPublish;
+ros::Publisher heartbeatPublisher;
 
 // Subscribers
 ros::Subscriber joySubscriber;
@@ -72,6 +73,7 @@ ros::Subscriber targetSubscriber;
 ros::Timer stateMachineTimer;
 ros::Timer publish_status_timer;
 ros::Timer targetDetectedTimer;
+ros::Timer publish_heartbeat_timer;
 
 
 // OS Signal Handler
@@ -160,6 +162,7 @@ void setGoalPose(double x, double y)
   goalPoseArena.y = y;
   goalPoseOdom = localization->poseArenaToOdom(goalPoseArena);
 }
+void publishHeartBeatTimerEventHandler(const ros::TimerEvent&);
 ///////////////////////////////////////////////////////////////////
 int main(int argc, char **argv) {
 
@@ -193,6 +196,11 @@ int main(int argc, char **argv) {
   stateMachinePublish = mNH.advertise<std_msgs::String>((publishedName + "/state_machine"), 10, true);
   infoLogPublisher = mNH.advertise<std_msgs::String>("/infoLog", 10, true);
   driveControlPublish = mNH.advertise<geometry_msgs::Twist>((publishedName + "/driveControl"), 10);
+
+
+  publish_heartbeat_timer = mNH.createTimer(ros::Duration(2.0), publishHeartBeatTimerEventHandler);
+  heartbeatPublisher = mNH.advertise<std_msgs::String>((publishedName + "/behaviour/heartbeat"), 1, true);
+
 
   publish_status_timer = mNH.createTimer(ros::Duration(status_publish_interval), publishStatusTimerEventHandler);
   stateMachineTimer = mNH.createTimer(ros::Duration(mobilityLoopTimeStep), mobilityStateMachine);
@@ -600,3 +608,8 @@ void sigintEventHandler(int sig) {
   ros::shutdown();
 }
 
+void publishHeartBeatTimerEventHandler(const ros::TimerEvent&) {
+  std_msgs::String msg;
+  msg.data = "";
+  heartbeatPublisher.publish(msg);
+}
