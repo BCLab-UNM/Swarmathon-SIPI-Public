@@ -163,6 +163,19 @@ int main(int argc, char **argv) {
 
   odom.header.frame_id = publishedName+"/odom";
   odom.child_frame_id = publishedName+"/base_link";
+  odom.pose.covariance[0] = 1000; // position x
+  odom.pose.covariance[7] = 1000; // position y
+  odom.pose.covariance[14] = 1000; // position z
+  odom.pose.covariance[21] = 1000; // orientation x
+  odom.pose.covariance[28] = 1000; // orientation y
+  odom.pose.covariance[35] = 1000; // orientation z
+
+  odom.twist.covariance[0] = 1; // linear x
+  odom.twist.covariance[7] = 1; // linear y
+  odom.twist.covariance[14] = 1000; // linear z
+  odom.twist.covariance[21] = 1000; // angular x
+  odom.twist.covariance[28] = 1000; // angular y
+  odom.twist.covariance[35] = 1; // angular z
 
   ros::spin();
 

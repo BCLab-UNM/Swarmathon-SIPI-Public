@@ -25,10 +25,8 @@
   <include file="$(find sipi_controller)/launch/apriltags.launch">
 		<arg name="name" value="$(arg name)"/>
 	</include>
+<!-- TODO this needs to be replaced by the visual localization -->
   <node name="$(arg name)_TEMP" pkg="tf" 
     type="static_transform_publisher" 
-    args="0 0 0 0 0 0 $(arg name)/odom $(arg name)/arena 100" />
-  <node name="$(arg name)_TEMP2" pkg="tf" 
-    type="static_transform_publisher" 
-    args="0 0 0 0 0 0 $(arg name)/odom $(arg name)/base_link 100" />
+    args="0 0 0 0 0 0 $(arg name)/map $(arg name)/arena 100" />
 </launch>
