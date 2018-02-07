@@ -11,6 +11,8 @@
     type="diagnostics" args="$(arg name)" />
   <node name="$(arg name)_BEHAVIOUR" pkg="sipi_controller" 
     type="sipi_controller" args="$(arg name)" output="screen"/>
+  <node name="$(arg name)_VISUAL" pkg="sipi_controller" 
+    type="visual_localization_node" args="$(arg name)" output="screen"/>
 <!--
   <node name="$(arg name)_OBSTACLE" pkg="obstacle_detection" 
     type="obstacle" args="$(arg name)" />
@@ -26,7 +28,9 @@
 		<arg name="name" value="$(arg name)"/>
 	</include>
 <!-- TODO this needs to be replaced by the visual localization -->
+<!--
   <node name="$(arg name)_TEMP" pkg="tf" 
     type="static_transform_publisher" 
     args="0 0 0 0 0 0 $(arg name)/map $(arg name)/arena 100" />
+-->
 </launch>

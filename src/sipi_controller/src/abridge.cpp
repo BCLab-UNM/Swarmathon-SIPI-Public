@@ -218,10 +218,12 @@ void calculateMotorCommands(void) {
   
     motor_left = limit(vx - vz, MAX_MOTOR_CMD);
     motor_right = limit(vx + vz, MAX_MOTOR_CMD);
+/*
     ROS_INFO_STREAM("vel="<<odom.twist.twist.linear.x<<","
       <<odom.twist.twist.angular.z<< " err:"<<err.linear.x 
       << ","<<err.angular.z<<" int_err_vx= "<<int_err_vx
       <<" vx="<<vx<<" vz="<<vz);
+*/
   }
 }
 
@@ -231,7 +233,7 @@ void sendToArduino(void) {
   // sprintf(moveCmd, "v,%d,%d\n", motor_left, motor_right); 
   os << "v," << motor_left << "," << motor_right << "\n";
   usb.sendData(os.str().c_str());
-  ROS_INFO_STREAM(os.str());
+ // ROS_INFO_STREAM(os.str());
 }
 
 // The finger and wrist handlers receive gripper angle commands in 
@@ -262,7 +264,7 @@ void serialActivityTimer(const ros::TimerEvent& e) {
   os << "w," << wristAngle_cmd << "\n";
   os << "d\n";
   usb.sendData(os.str().c_str());
-  ROS_INFO_STREAM(os.str());
+  //ROS_INFO_STREAM(os.str());
   parseData(usb.readData());
   publishRosTopics();
   calculateMotorCommands();
