@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
+set (CMAKE_CXX_STANDARD 11)
 project(sipi_controller)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -19,6 +20,7 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
 )
+add_library(sipi_controller src/sipi_controller.cpp)
 add_library(PickUpController src/PickUpController.cpp)
 add_library(DropOffController src/DropOffController.cpp)
 add_library(SearchController src/SearchController.cpp)
@@ -31,8 +33,10 @@ add_library(AvoidHome src/AvoidHome.cpp)
 add_library(targetFunctions src/targetFunctions.cpp)
 add_library(localization src/Localization.cpp)
 
-add_executable(sipi_controller src/sipi_controller.cpp)
-target_link_libraries(sipi_controller
+add_executable(sipi_controller_node src/sipi_controller_node.cpp)
+add_dependencies(sipi_controller_node ${catkin_EXPORTED_TARGETS})
+target_link_libraries(sipi_controller_node
+  sipi_controller
   PickUpController
   DropOffController
   SearchController
@@ -51,7 +55,6 @@ target_link_libraries(visual_localization_node
   VisualLocalization 
   ${catkin_LIBRARIES})
 
-add_dependencies(sipi_controller ${catkin_EXPORTED_TARGETS})
 add_dependencies(localization ${catkin_EXPORTED_TARGETS})
 add_dependencies(visual_localization_node ${catkin_EXPORTED_TARGETS})
 
