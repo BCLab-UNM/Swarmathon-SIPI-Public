@@ -1,6 +1,11 @@
 <?xml version="1.0"?>
 <launch>
 	<arg name="name"/>
+  <!-- argument to decide if you use GPS data of not
+    primarilly for indoor testing
+  -->
+  <arg name="use_gps" default="true"/>
+  <!-- have to define this PATH or diagnostics fail -->
   <env name="GAZEBO_MODEL_PATH" value="~" />
   <param name="tf_prefix" value="$(arg name)" />
 
@@ -21,7 +26,22 @@
   <include file="$(find sipi_controller)/launch/navsat.launch">
 		<arg name="name" value="$(arg name)"/>
 	</include>
-  <include file="$(find sipi_controller)/launch/localization.launch">
+
+  <!-- for indoor testing you cannot use GPS so we have a 
+    different launch file that just passes ODOM through
+  -->
+  <group if="$(arg use_gps)">
+    <include file="$(find sipi_controller)/launch/localization_gps.launch">
+		  <arg name="name" value="$(arg name)"/>
+	  </include>
+  </group>
+  <group unless="$(arg use_gps)">
+    <include file="$(find sipi_controller)/launch/localization_no_gps.launch">
+		  <arg name="name" value="$(arg name)"/>
+	  </include>
+  </group>
+
+  <include file="$(find sipi_controller)/launch/localization_odom.launch">
 		<arg name="name" value="$(arg name)"/>
 	</include>
   <include file="$(find sipi_controller)/launch/apriltags.launch">

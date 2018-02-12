@@ -7,7 +7,7 @@
 #include <tf/transform_listener.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/PoseStamped.h>
-// helper functions to workd with poses and angles
+// helper functions to work with poses and angles
 // get 2D theta from quaternion
 double thetaFromQuat(geometry_msgs::Quaternion quat);
 // get 2D pose from 3D

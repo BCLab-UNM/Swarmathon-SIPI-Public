@@ -16,6 +16,7 @@
 	<arg name="arduino_dev"/>
 	<arg name="gps_dev"/>
 	<arg name="name"/>
+	<arg name="use_gps" default="true"/>
 
 	<node pkg="ublox_gps" type="ublox_gps" name="$(arg name)_UBLOX">
 		<param name="device" value="$(arg gps_dev)"/>
@@ -33,5 +34,6 @@
 	</include>
 	<include file="$(find sipi_controller)/launch/swarmie.launch">
 		<arg name="name" value="$(arg name)"/>
+		<arg name="use_gps" value="$(arg use_gps)"/>
 	</include>
 </launch>

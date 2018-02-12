@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!--
+  launch file to use indoors or when GPS is bad
+  works the same as with GPS only ignores navsat data
+-->
+<launch>
+	<arg name="name"/>
+  <node pkg="sipi_controller" type="repeat_localization" name="$(arg name)_EKF"  ns="$(arg name)" output="screen"/>
+</launch>

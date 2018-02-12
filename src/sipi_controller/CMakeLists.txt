@@ -62,3 +62,6 @@ add_executable(abridge src/abridge.cpp)
 add_library(usbSerial src/usbSerial.cpp)
 
 target_link_libraries( abridge usbSerial ${catkin_LIBRARIES})
+
+add_executable(repeat_localization src/repeat_localization.cpp)
+target_link_libraries(repeat_localization ${catkin_LIBRARIES})

@@ -1,4 +1,8 @@
 <?xml version="1.0"?>
+<!--
+  launch an EKF to combine the GPS data with the odometry to 
+  give the odom/ekf transform
+-->
 <launch>
 	<arg name="name"/>
   <node pkg="robot_localization" 
@@ -6,7 +10,7 @@
     name="$(arg name)_MAP">
 
   <param name="odom0" value="/$(arg name)/odom/navsat" />
-  <param name="odom1" value="/$(arg name)/odom" />
+  <param name="odom1" value="/$(arg name)/odom/filtered" />
   <param name="two_d_mode" value="true" />
   <param name="world_frame" value="map" />
   <param name="frequency" value="10" />
@@ -64,39 +68,4 @@
   <remap from="/odometry/filtered" to="/$(arg name)/odom/ekf" />
 
   </node>
-
-  <!-- this EKF combines the IMU and the wheel odometers to give 
-    odometry in the odom frame
-  -->
-  <node pkg="robot_localization" 
-    type="ekf_localization_node" 
-    name="$(arg name)_ODOM">
-
-  <param name="odom0" value="/$(arg name)/odom" />
-  <param name="imu0" value="/$(arg name)/imu" />
-  <param name="two_d_mode" value="true" />
-  <param name="world_frame" value="odom" />
-  <param name="odom_frame" value="odom" />
-  <param name="bask_link_frame" value="base_link" />
-  <param name="frequency" value="10" />
-
-  <!-- from the wheel encoders, only use v_x and v_yaw -->
-  <rosparam param="odom0_config">[false, false, false,
-                                false, false, false,
-                                true, false, false,
-                                false, false, true,
-                                false, false, false]
-  </rosparam>
-
-  <!-- only use compass heading from IMU -->
-  <rosparam param="imu0_config">[false, false, false,
-                               false, false, true,
-                               false, false, false,
-                               false, false, false,
-                               false, false, false]
-  </rosparam>
-
-  <remap from="/odometry/filtered" to="/$(arg name)/odom/filtered" />
-  </node>
-
 </launch>
