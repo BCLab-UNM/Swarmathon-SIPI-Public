@@ -114,7 +114,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
 
   /***
     This is the watchdog timer.  if any state hangs for more than 
-    the watchdog time, then everything starts over
+    the watchdog time, then go home and start over
    */
   if(stateRunTime > ros::Duration(watchdogTimeout) && 
       state != STATE_MACHINE_MANUAL) {
@@ -239,8 +239,8 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         nextState = STATE_MACHINE_RETURN;
       }
       break;
-      // pickup cube then return to base
     case STATE_MACHINE_PICKUP: 
+      // pickup cube 
       if(stateRunTime > ros::Duration(PICKUP_TIMEOUT)) {
         nextState = STATE_MACHINE_SEARCH;
         break;
@@ -249,11 +249,11 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
           tagDetectionArray);
       vel = pickupResult.vel;
       grip = pickupResult.grip;
-      if(pickupResult.result == PICKUP_RESULT_SUCCESS) {
+      if (pickupResult.result == PICKUP_RESULT_SUCCESS) {
         carryingCube = true;
         setGoalPose(0,0);
         nextState = STATE_MACHINE_RETURN;
-      } else if(pickupResult.result == PICKUP_RESULT_FAILED) {
+      } else if (pickupResult.result == PICKUP_RESULT_FAILED) {
         nextState = STATE_MACHINE_SEARCH;
       }
       break;
@@ -355,18 +355,18 @@ void sipi_controller::sendDriveCommand(CDriveCmd vel)
 {
   velocity.linear.x = vel.linear;
   velocity.angular.z = vel.yawError;
-
   // publish the drive commands
   driveControlPublish.publish(velocity);
 }
+
 void sipi_controller::sendDriveCommand(float linear, float yawError)
 {
   velocity.linear.x = linear;
   velocity.angular.z = yawError;
-
   // publish the drive commands
   driveControlPublish.publish(velocity);
 }
+
 // find out how many rovers are connected
 // get a list of all of the topics from the master
 // count how many are called "status"
@@ -377,12 +377,10 @@ int sipi_controller::countRovers(void)
   ros::master::getTopics(master_topics);
 
   for (ros::master::V_TopicInfo::iterator it = master_topics.begin() ; 
-      it != master_topics.end(); it++)
-  {
+      it != master_topics.end(); it++) {
     ros::master::TopicInfo info = *it;
     std::size_t found = info.name.find("/status");
-    if (found!=std::string::npos)
-    {
+    if (found != std::string::npos) {
       count++;
     }
   }
@@ -392,7 +390,6 @@ int sipi_controller::countRovers(void)
 /*************************
  * ROS CALLBACK HANDLERS *
  *************************/
-
 void sipi_controller::targetHandler(
     const apriltags_ros::AprilTagDetectionArray::ConstPtr& message) 
 {
@@ -411,9 +408,13 @@ void sipi_controller::obstacleHandler(const std_msgs::UInt8::ConstPtr& message) 
   }
   obstacleDetected = message->data;
 }
-void sipi_controller::joyCmdHandler(const sensor_msgs::Joy::ConstPtr& message) {
+
+void sipi_controller::joyCmdHandler(
+    const sensor_msgs::Joy::ConstPtr& message) {
   if (currentMode == 0 || currentMode == 1) {
-    sendDriveCommand(abs(message->axes[4]) >= 0.1 ? message->axes[4] : 0, abs(message->axes[3]) >= 0.1 ? message->axes[3] : 0);
+    sendDriveCommand(
+        abs(message->axes[4]) >= 0.1 ?  message->axes[4] : 0, 
+        abs(message->axes[3]) >= 0.1 ? message->axes[3] : 0);
   }
 }
 
@@ -428,6 +429,7 @@ void sipi_controller::targetDetectedReset(const ros::TimerEvent& event) {
   //moveGripper(true, true);
   //TODO what is this doing????
 }
+
 void sipi_controller::sigintEventHandler(int sig) {
   // All the default sigint handler does is call shutdown()
   ros::shutdown();
@@ -438,15 +440,15 @@ void sipi_controller::publishHeartBeatTimerEventHandler(const ros::TimerEvent&) 
   msg.data = "";
   heartbeatPublisher.publish(msg);
 }
+
 // set a new goal.  Input is 2D pose of goal in arena frame
 // transforms it to Odom using gps and visual tf
-void sipi_controller::setGoalPose(geometry_msgs::Pose2D pose)
-{
+void sipi_controller::setGoalPose(geometry_msgs::Pose2D pose) {
   goalPoseArena = pose;
   goalPoseOdom = localization->poseArenaToOdom(pose);
 }
-void sipi_controller::setGoalPose(double x, double y)
-{
+
+void sipi_controller::setGoalPose(double x, double y) {
   goalPoseArena.x = x;
   goalPoseArena.y = y;
   goalPoseOdom = localization->poseArenaToOdom(goalPoseArena);

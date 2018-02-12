@@ -79,7 +79,6 @@ class sipi_controller {
     ros::Timer targetDetectedTimer;
     ros::Timer publish_heartbeat_timer;
 
-
     // OS Signal Handler
     void sigintEventHandler(int signal);
 
