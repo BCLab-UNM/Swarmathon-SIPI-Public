@@ -153,6 +153,7 @@ class sipi_controller {
     geometry_msgs::Pose2D goalPoseArena;
     void setGoalPose(geometry_msgs::Pose2D pose);
     void setGoalPose(double x, double y);
+    sensor_msgs::Joy lastJoyCmd;
 };
 
 #endif // _SIPI_CONTROLLER_INCLUDE_SIPI_CONTROLLER_SIPI_CONTROLLER_H

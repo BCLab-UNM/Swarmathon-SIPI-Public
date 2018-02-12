@@ -5,5 +5,7 @@
 -->
 <launch>
 	<arg name="name"/>
-  <node pkg="sipi_controller" type="repeat_localization" name="$(arg name)_EKF"  ns="$(arg name)" output="screen"/>
+  <node pkg="sipi_controller" type="repeat_localization" name="$(arg name)_MAP"  output="screen">
+    <param name="name" value="$(arg name)" />
+  </node>
 </launch>

@@ -129,6 +129,8 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
   // main state machine
   switch(state) {
     case STATE_MACHINE_MANUAL:
+      vel.linear = abs(lastJoyCmd.axes[4]) >= 0.1 ? lastJoyCmd.axes[4] : 0; 
+      vel.yawError = abs(lastJoyCmd.axes[3]) >= 0.1 ? lastJoyCmd.axes[3] : 0;
       if (currentMode == 2 || currentMode == 3) {
         nextState = STATE_MACHINE_INIT;
       }
@@ -411,11 +413,7 @@ void sipi_controller::obstacleHandler(const std_msgs::UInt8::ConstPtr& message) 
 
 void sipi_controller::joyCmdHandler(
     const sensor_msgs::Joy::ConstPtr& message) {
-  if (currentMode == 0 || currentMode == 1) {
-    sendDriveCommand(
-        abs(message->axes[4]) >= 0.1 ?  message->axes[4] : 0, 
-        abs(message->axes[3]) >= 0.1 ? message->axes[3] : 0);
-  }
+  lastJoyCmd = *message;
 }
 
 void sipi_controller::publishStatusTimerEventHandler(const ros::TimerEvent&) {
