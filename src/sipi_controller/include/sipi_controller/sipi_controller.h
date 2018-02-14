@@ -94,8 +94,8 @@ class sipi_controller {
 
     // GLOBAL VARIABLES
     // these should really be in a class
-    int obstacleDetected = 0;
-    int obstacleCount = 0;
+    int obstacleDetected;
+    int obstacleCount;
     geometry_msgs::Twist velocity;
     char host[128];
     std::string name;
@@ -110,10 +110,10 @@ class sipi_controller {
     CDriveCmd vel;
     ros::Time stateStartTime;
     ros::Duration stateRunTime;
-    EStateMachineStates state = STATE_MACHINE_MANUAL;
-    EStateMachineStates prevState = STATE_MACHINE_MANUAL;
-    EStateMachineStates avoidPrevState = STATE_MACHINE_MANUAL;
-    EStateMachineStates nextState = STATE_MACHINE_MANUAL;
+    EStateMachineStates state;
+    EStateMachineStates prevState;
+    EStateMachineStates avoidPrevState;
+    EStateMachineStates nextState;
     // controllers
     DrivingController drivingController;
     PickUpController pickUpController;
@@ -124,27 +124,27 @@ class sipi_controller {
     FindHomeController findHomeController;
     GripperController *gripperController;
     Localization *localization;
-    int numberOfRovers = 1; // how many rovers are active
-    int currentMode = 0;
-    bool carryingCube = false;
-    float stateMachinePeriod = 0.1; // time between the state machine loop
-    float status_publish_interval = 1;
+    int numberOfRovers; // how many rovers are active
+    int currentMode;
+    bool carryingCube;
+    float stateMachinePeriod; // time between the state machine loop
+    float status_publish_interval;
     // watchdog  timeout means something has died and we need to start over
-    float watchdogTimeout = 60;
-    bool targetDetected = false;
-    bool targetCollected = false;
-    bool homeVisible = false;
-    bool blockVisible = false;
-    int missedHomeCount = 0;
-    bool homeSeen = false; // allows it to be missed a few times before going false
+    float watchdogTimeout;
+    bool targetDetected;
+    bool targetCollected;
+    bool homeVisible;
+    bool blockVisible;
+    int missedHomeCount;
+    bool homeSeen; // allows it to be missed a few times before going false
     // is state machine processing?  if so hold off on asyn updates from topics
-    bool machineBusy = true;
+    bool machineBusy;
     // Set true when we are insie the center circle and we need to drop the block,
     // back out, and reset the boolean cascade.
-    bool reachedCollectionPoint = false;
+    bool reachedCollectionPoint;
     // used for calling code once but not in main
-    bool init = false;
-    bool avoidingObstacle = false;
+    bool init;
+    bool avoidingObstacle;
     std_msgs::String msg;
     // Numeric Variables for rover positioning
     geometry_msgs::Pose2D currentPoseOdom;

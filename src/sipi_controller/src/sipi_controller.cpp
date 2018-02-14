@@ -6,6 +6,32 @@ sipi_controller::sipi_controller(
     int argc, char** argv) {
 
   ros::NodeHandle mNH;
+    state = STATE_MACHINE_MANUAL;
+    prevState = STATE_MACHINE_MANUAL;
+    avoidPrevState = STATE_MACHINE_MANUAL;
+    nextState = STATE_MACHINE_MANUAL;
+    obstacleDetected = 0;
+    obstacleCount = 0;
+    numberOfRovers = 1; // how many rovers are active
+    currentMode = 0;
+    carryingCube = false;
+    stateMachinePeriod = 0.1; // time between the state machine loop
+    status_publish_interval = 1;
+    watchdogTimeout = 60;
+    targetDetected = false;
+    targetCollected = false;
+    homeVisible = false;
+    blockVisible = false;
+    missedHomeCount = 0;
+    homeSeen = false; // allows it to be missed a few times before going false
+    // is state machine processing?  if so hold off on asyn updates from topics
+    machineBusy = true;
+    // Set true when we are insie the center circle and we need to drop the block,
+    // back out, and reset the boolean cascade.
+    reachedCollectionPoint = false;
+    // used for calling code once but not in main
+    init = false;
+    avoidingObstacle = false;
 
   gripperController = new GripperController(mNH, name);
   localization = new Localization(name, mNH);
@@ -32,7 +58,6 @@ sipi_controller::sipi_controller(
       &sipi_controller::publishHeartBeatTimerEventHandler, this);
   heartbeatPublisher = mNH.advertise<std_msgs::String>(
       (name + "/behaviour/heartbeat"), 1, true);
-
 
   publish_status_timer = mNH.createTimer(
       ros::Duration(status_publish_interval), 
@@ -129,8 +154,10 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
   // main state machine
   switch(state) {
     case STATE_MACHINE_MANUAL:
-      vel.linear = abs(lastJoyCmd.axes[4]) >= 0.1 ? lastJoyCmd.axes[4] : 0; 
-      vel.yawError = abs(lastJoyCmd.axes[3]) >= 0.1 ? lastJoyCmd.axes[3] : 0;
+      if(lastJoyCmd.axes.size() >= 4 ) {
+        vel.linear = abs(lastJoyCmd.axes[4]) >= 0.1 ? lastJoyCmd.axes[4] : 0; 
+        vel.yawError = abs(lastJoyCmd.axes[3]) >= 0.1 ? lastJoyCmd.axes[3] : 0;
+      }
       if (currentMode == 2 || currentMode == 3) {
         nextState = STATE_MACHINE_INIT;
       }

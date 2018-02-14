@@ -9,13 +9,16 @@ int main(int argc, char **argv) {
 
   if (argc >= 2) {
     publishedName = argv[1];
-    cout << publishedName << ":  Mobility" << endl;
+    cout << publishedName << ":  sipi_controller_node running" << endl;
   } else {
     publishedName = hostname;
     cout << "No Name Selected. Default is: " << publishedName << endl;
   }
-  ros::init(argc, argv, (publishedName + "_MOBILITY") );
+  cout << "controller HERE\n";
+  ros::init(argc, argv, (publishedName + "_BEHAVIOUR") );
+  cout << "controller HERE1\n";
   sipi_controller controller(publishedName, argc, argv);
+  cout << "controller HERE2\n";
   ros::spin();
 
   return EXIT_SUCCESS;
