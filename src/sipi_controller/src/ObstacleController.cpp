@@ -1,5 +1,5 @@
 #include "sipi_controller/ObstacleController.h"
-#define PAUSE_TIME 1
+#define PAUSE_TIME 2
 #define TURN_RIGHT_TIME 2
 #define TURN_LEFT_TIME 2
 #define FORWARD_TIME 2
