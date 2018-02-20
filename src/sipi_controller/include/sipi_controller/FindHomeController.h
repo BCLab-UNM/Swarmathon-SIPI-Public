@@ -2,6 +2,7 @@
 #define FIND_HOME_CONTROLLER_H
 #include <ros/ros.h>
 #include <geometry_msgs/Pose2D.h>
+#include <geometry_msgs/Twist.h>
 #include "DrivingController.h"
 
 typedef enum {
@@ -18,7 +19,7 @@ typedef enum {
 } Finding_Home_State;
 
 struct Finding_Home_Result {
-	CDriveCmd vel;
+	geometry_msgs::Twist cmd_vel;
 
 	Finding_Home_State state;
 	Find_Home_Result result;

@@ -40,8 +40,7 @@ class sipi_controller {
   public: 
     sipi_controller(const std::string &name, int argc, char** argv);
 
-    // Mobility Logic Functions
-    void sendDriveCommand(CDriveCmd vel);
+    void sendDriveCommand(geometry_msgs::Twist vel);
     void sendDriveCommand(float linear, float yawError);
     void publishState(void);
     int countRovers(void);
@@ -96,18 +95,17 @@ class sipi_controller {
     // these should really be in a class
     int obstacleDetected;
     int obstacleCount;
-    geometry_msgs::Twist velocity;
+    geometry_msgs::Twist cmd_vel_;
     char host[128];
     std::string name;
     char prev_state_machine[128];
     apriltags_ros::AprilTagDetectionArray tagDetectionArray;
     SDrivingStatus drivingResult;
-    PickUpResult pickupResult;
+    PickupController::Result pickupResult;
     DropOffResult dropoffResult;
     Finding_Home_Result findResult;
     ObstacleResult obstacleResult;
     AvoidResult avoidResult;
-    CDriveCmd vel;
     ros::Time stateStartTime;
     ros::Duration stateRunTime;
     EStateMachineStates state;
@@ -116,7 +114,7 @@ class sipi_controller {
     EStateMachineStates nextState;
     // controllers
     DrivingController drivingController;
-    PickUpController pickUpController;
+    PickupController::PickUpController pickUpController;
     DropOffController dropoffController;
     SearchController searchController;
     ObstacleController obstacleController;

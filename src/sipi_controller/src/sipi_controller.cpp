@@ -6,32 +6,32 @@ sipi_controller::sipi_controller(
     int argc, char** argv) {
 
   ros::NodeHandle mNH;
-    state = STATE_MACHINE_MANUAL;
-    prevState = STATE_MACHINE_MANUAL;
-    avoidPrevState = STATE_MACHINE_MANUAL;
-    nextState = STATE_MACHINE_MANUAL;
-    obstacleDetected = 0;
-    obstacleCount = 0;
-    numberOfRovers = 1; // how many rovers are active
-    currentMode = 0;
-    carryingCube = false;
-    stateMachinePeriod = 0.1; // time between the state machine loop
-    status_publish_interval = 1;
-    watchdogTimeout = 60;
-    targetDetected = false;
-    targetCollected = false;
-    homeVisible = false;
-    blockVisible = false;
-    missedHomeCount = 0;
-    homeSeen = false; // allows it to be missed a few times before going false
-    // is state machine processing?  if so hold off on asyn updates from topics
-    machineBusy = true;
-    // Set true when we are insie the center circle and we need to drop the block,
-    // back out, and reset the boolean cascade.
-    reachedCollectionPoint = false;
-    // used for calling code once but not in main
-    init = false;
-    avoidingObstacle = false;
+  state = STATE_MACHINE_MANUAL;
+  prevState = STATE_MACHINE_MANUAL;
+  avoidPrevState = STATE_MACHINE_MANUAL;
+  nextState = STATE_MACHINE_MANUAL;
+  obstacleDetected = 0;
+  obstacleCount = 0;
+  numberOfRovers = 1; // how many rovers are active
+  currentMode = 0;
+  carryingCube = false;
+  stateMachinePeriod = 0.1; // time between the state machine loop
+  status_publish_interval = 1;
+  watchdogTimeout = 60;
+  targetDetected = false;
+  targetCollected = false;
+  homeVisible = false;
+  blockVisible = false;
+  missedHomeCount = 0;
+  homeSeen = false; // allows it to be missed a few times before going false
+  // is state machine processing?  if so hold off on asyn updates from topics
+  machineBusy = true;
+  // Set true when we are insie the center circle and we need to drop the block,
+  // back out, and reset the boolean cascade.
+  reachedCollectionPoint = false;
+  // used for calling code once but not in main
+  init = false;
+  avoidingObstacle = false;
 
   gripperController = new GripperController(mNH, name);
   localization = new Localization(name, mNH);
@@ -80,6 +80,22 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
   // to ignore GPS and visual, set both to Odom
   currentPoseOdom = localization->getPoseOdom();
   currentPoseArena = localization->getPoseArena();
+  // publish state machine string 
+  std::ostringstream poses;
+  poses <<  fixed << setprecision(1) << 
+    " currentPoseA (" <<currentPoseArena.x<<","
+    << currentPoseArena.y <<", "<<currentPoseArena.theta<<") " <<
+    " O (" <<currentPoseOdom.x<<","
+    <<currentPoseOdom.y << ","<<currentPoseOdom.theta<<") ";
+  std::ostringstream goal_poses;
+  goal_poses << " goalPoseA (" << goalPoseArena.x <<","
+    <<goalPoseArena.y<<","<<goalPoseArena.theta<<") " <<
+    " O (" << goalPoseOdom.x <<","
+    <<goalPoseOdom.y<<","<<goalPoseOdom.theta<<") ";
+  std::ostringstream status_stream;
+  status_stream <<  fixed << setprecision(1) << 
+    stateRunTime.toSec() << " " << carryingCube << " ";
+
   // this allows the target to dissappear briefly but not consider it lost
   // at first (reset) homeSeen is false. but then it only becomes false
   // again if the target is missed multiple times
@@ -105,7 +121,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
 #if 1
   if((homeSeen) && (state == STATE_MACHINE_SEARCH)) {
     // remember what we were doing
-    if(drivingResult.vel.linear > 0) {
+    if(drivingResult.cmd_vel.linear.x > 0) {
       avoidPrevState = state;
       avoidController.reset();
       nextState = STATE_MACHINE_AVOID_HOME;
@@ -134,7 +150,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
   stateRunTime = ros::Time::now() - stateStartTime;
   machineBusy = true;
   // default commands for move and gripper
-  vel.linear = vel.yawError = 0.0;
+  cmd_vel_.linear.x = cmd_vel_.angular.z = 0.0;
   CGripCmd grip;
 
   /***
@@ -155,12 +171,15 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
   switch(state) {
     case STATE_MACHINE_MANUAL:
       if(lastJoyCmd.axes.size() >= 4 ) {
-        vel.linear = abs(lastJoyCmd.axes[4]) >= 0.1 ? lastJoyCmd.axes[4] : 0; 
-        vel.yawError = abs(lastJoyCmd.axes[3]) >= 0.1 ? lastJoyCmd.axes[3] : 0;
+        cmd_vel_.linear.x = abs(lastJoyCmd.axes[4]) >= 0.1 ?
+          lastJoyCmd.axes[4] : 0; 
+        cmd_vel_.angular.z = abs(lastJoyCmd.axes[3]) >= 0.1 ?
+          lastJoyCmd.axes[3] : 0;
       }
       if (currentMode == 2 || currentMode == 3) {
         nextState = STATE_MACHINE_INIT;
       }
+      status_stream << "MANUAL: " << " Mode= " << currentMode << poses.str();
       break;
     case STATE_MACHINE_INIT:
       if (stateRunTime > ros::Duration(1)) {
@@ -172,6 +191,11 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         setGoalPose(searchController.getNextGoal());
         nextState = STATE_MACHINE_SEARCH;
       }
+      status_stream << "INIT: " << 
+        std::setprecision(1) << 
+        stateRunTime << 
+        " Number Of Rovers = " << numberOfRovers <<
+        poses.str();
       break;
     case STATE_MACHINE_SEARCH: 
       // go through search pattern goals
@@ -181,7 +205,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       }
       drivingResult = drivingController.drive(currentPoseOdom, 
           goalPoseOdom, 0.2);
-      vel = drivingResult.vel;
+      cmd_vel_ = drivingResult.cmd_vel;
       if(blockVisible && !homeSeen) {
         pickUpController.reset();  
         nextState = STATE_MACHINE_PICKUP;
@@ -189,24 +213,35 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         setGoalPose(0,0);
         nextState = STATE_MACHINE_RETURN;
       }
+      status_stream << "SEARCH: " << 
+        poses.str() << goal_poses.str() <<
+        " dist= "<< drivingResult.distToGoal <<
+        " headingToGoal= "<< drivingResult.headingToGoal <<
+        " errorYaw= " << drivingResult.errorYaw;
       break;
     case STATE_MACHINE_AVOID_HOME: 
       avoidResult = avoidController.execute(homeSeen);
-      vel = avoidResult.vel;
+      cmd_vel_ = avoidResult.cmd_vel;
       if(avoidResult.result != AVOID_RESULT_BUSY) {
         nextState = avoidPrevState;
       }
+      status_stream << "AVOID: " << 
+        std::setprecision(1) << 
+        stateRunTime << " : " << avoidResult.status;
       break;
       // avoid an obstacle then continue
     case STATE_MACHINE_OBSTACLE: 
       obstacleResult = obstacleController.execute(obstacleDetected);
-      vel = obstacleResult.vel;
+      cmd_vel_ = obstacleResult.cmd_vel;
       if(obstacleResult.result == OBS_RESULT_SUCCESS) {
         nextState = prevState;
       } else if(obstacleResult.result == OBS_RESULT_FAILED) {
         findHomeController.reset();
         nextState = STATE_MACHINE_FIND_HOME;
       }
+      status_stream << "OBSTACLE: " << 
+        std::setprecision(1) << 
+        stateRunTime << " : " << obstacleResult.status;
       break;
     case STATE_MACHINE_RETURN: 
       // drive to base, dropoff when you see home base
@@ -214,7 +249,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       grip.fingersOpen = false;
       drivingResult = drivingController.drive(currentPoseOdom, goalPoseOdom,
           0.8);
-      vel = drivingResult.vel;
+      cmd_vel_ = drivingResult.cmd_vel;
       if(homeVisible) {
         if(carryingCube) {
           dropoffController.reset();
@@ -231,12 +266,17 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         findHomeController.reset();
         nextState = STATE_MACHINE_FIND_HOME;
       }
+      status_stream << "RETURN: " << 
+        poses.str() << goal_poses.str() <<
+        " dist= "<< drivingResult.distToGoal <<
+        " headingToGoal= "<< drivingResult.headingToGoal <<
+        " errorYaw= " << drivingResult.errorYaw;
       break;
     case STATE_MACHINE_FIND_HOME: 
       // if I went home but did not find it, search for it 	
       findResult = findHomeController.execute(obstacleDetected, 
           homeVisible);
-      vel = findResult.vel;
+      cmd_vel_ = findResult.cmd_vel;
       if(findResult.result == LOSER_RESULT_SUCCESS) {
         if(carryingCube)  {
           dropoffController.reset();
@@ -252,11 +292,14 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         setGoalPose(0,0);
         nextState = STATE_MACHINE_RETURN;
       }
+      status_stream << "FIND_HOME: " << 
+        std::setprecision(1) << 
+        stateRunTime << findResult.status;
       break;
     case STATE_MACHINE_DROPOFF: 
       // move to center of base, drop cube, back up, then continue search
       dropoffResult = dropoffController.execute(tagDetectionArray);
-      vel = dropoffResult.vel;
+      cmd_vel_ = dropoffResult.cmd_vel;
       grip = dropoffResult.grip;
       // TODO check for success instead
       if(dropoffResult.result == DROPOFF_RESULT_SUCCESS) {
@@ -267,6 +310,9 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         setGoalPose(0,0);
         nextState = STATE_MACHINE_RETURN;
       }
+      status_stream << "DROPOFF: " << 
+        std::setprecision(1) << 
+        stateRunTime << " : "<< dropoffResult.status;
       break;
     case STATE_MACHINE_PICKUP: 
       // pickup cube 
@@ -276,18 +322,18 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       }
       pickupResult = pickUpController.execute(obstacleDetected, 
           tagDetectionArray);
-      vel = pickupResult.vel;
+      cmd_vel_ = pickupResult.cmd_vel;
       grip = pickupResult.grip;
-      if (pickupResult.result == PICKUP_RESULT_SUCCESS) {
+      if (pickupResult.result == PickupController::ResultCode::SUCCESS) {
         carryingCube = true;
         setGoalPose(0,0);
         nextState = STATE_MACHINE_RETURN;
-      } else if (pickupResult.result == PICKUP_RESULT_FAILED) {
+      } else if (pickupResult.result == PickupController::ResultCode::FAILED) {
         nextState = STATE_MACHINE_SEARCH;
       }
+      status_stream << "PICKUP: " << pickupResult.status;
       break;
   } /* end of switch() */
-  machineBusy = false;
   // check if home tag visible.  if so, don't go forward to avoid
   // plowing targets off home base.
   /*
@@ -296,104 +342,16 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
      case STATE_MACHINE_DROPOFF:
      case STATE_MACHINE_PICKUP:
      case STATE_MACHINE_SEARCH:
-  //		vel.linear = 0.0;
+  //		cmd_vel_.linear.x = 0.0;
   }
    */
-  sendDriveCommand(vel);
+  driveControlPublish.publish(cmd_vel_);
   gripperController->move(grip);
-  publishState();
-}
-void sipi_controller::publishState(void)
-{
-  // publish state machine string 
-  std::ostringstream poses;
-  poses <<  fixed << setprecision(1) << 
-    " currentPoseA (" <<currentPoseArena.x<<","
-    << currentPoseArena.y <<", "<<currentPoseArena.theta<<") " <<
-    " O (" <<currentPoseOdom.x<<","
-    <<currentPoseOdom.y << ","<<currentPoseOdom.theta<<") " <<
-    " goalPoseA (" << goalPoseArena.x <<","
-    <<goalPoseArena.y<<","<<goalPoseArena.theta<<") " <<
-    " O (" << goalPoseOdom.x <<","
-    <<goalPoseOdom.y<<","<<goalPoseOdom.theta<<") ";
-  std::ostringstream ss;
-  ss <<  fixed << setprecision(1) ;
-  switch(state) {
-    case STATE_MACHINE_MANUAL: 
-      ss << "MANUAL: " << 
-        std::setprecision(1) << 
-        stateRunTime.toSec() << " Mode= " << currentMode
-        << poses.str();
-      break;
-    case STATE_MACHINE_INIT: 
-      ss << "INIT: " << 
-        std::setprecision(1) << 
-        stateRunTime << 
-        " Number Of Rovers = " << numberOfRovers <<
-        poses.str();
-      break;
-    case STATE_MACHINE_SEARCH: 
-      ss << "SEARCH: " << 
-        std::setprecision(1) << 
-        stateRunTime <<
-        poses.str() << 
-        " linear= "<< vel.linear <<
-        " angular= "<< vel.yawError <<
-        " dist= "<< drivingResult.distToGoal <<
-        " headingToGoal= "<< drivingResult.headingToGoal <<
-        " errorYaw= " << drivingResult.errorYaw;
-      break;
-    case STATE_MACHINE_OBSTACLE: 
-      ss << "OBSTACLE: " << 
-        std::setprecision(1) << 
-        stateRunTime << " : " << obstacleResult.status;
-      break;
-    case STATE_MACHINE_AVOID_HOME: 
-      ss << "AVOID: " << 
-        std::setprecision(1) << 
-        stateRunTime << " : " << avoidResult.status;
-      break;
-    case STATE_MACHINE_FIND_HOME: 
-      ss << "FIND_HOME: " << 
-        std::setprecision(1) << 
-        stateRunTime << findResult.status;
-      break;
-    case STATE_MACHINE_RETURN: 
-      ss << "RETURN: " << 
-        std::setprecision(1) << 
-        stateRunTime << poses.str() ;
-      break;
-    case STATE_MACHINE_PICKUP: 
-      ss << "PICKUP: " << 
-        std::setprecision(1) << 
-        stateRunTime << " : "<<pickupResult.status;
-      break;
-    case STATE_MACHINE_DROPOFF: 
-      ss << "DROPOFF: " << 
-        std::setprecision(1) << 
-        stateRunTime << " : "<< dropoffResult.status;
-      break;
-  } 
-  ss << " Carrying: "<< carryingCube;
+  status_stream << " cmd_vel_=" << cmd_vel_.linear.x <<
+    "," <<cmd_vel_.angular.z;
   std_msgs::String stateMachineMsg;
-  stateMachineMsg.data = ss.str();
+  stateMachineMsg.data = status_stream.str();
   stateMachinePublish.publish(stateMachineMsg);
-}
-
-void sipi_controller::sendDriveCommand(CDriveCmd vel)
-{
-  velocity.linear.x = vel.linear;
-  velocity.angular.z = vel.yawError;
-  // publish the drive commands
-  driveControlPublish.publish(velocity);
-}
-
-void sipi_controller::sendDriveCommand(float linear, float yawError)
-{
-  velocity.linear.x = linear;
-  velocity.angular.z = yawError;
-  // publish the drive commands
-  driveControlPublish.publish(velocity);
 }
 
 // find out how many rovers are connected

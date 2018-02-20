@@ -2,6 +2,7 @@
 #define DROPOFCONTROLLER_H
 
 #include <apriltags_ros/AprilTagDetectionArray.h>
+#include <geometry_msgs/Twist.h>
 #include <ros/ros.h>
 #include "GripperController.h"
 #include "DrivingController.h"
@@ -20,7 +21,7 @@ typedef enum {
 } EDropoffState;
 
 struct DropOffResult {
-	CDriveCmd vel;
+  geometry_msgs::Twist cmd_vel;
 	CGripCmd grip;
 	EDropoffState state;
 	EDropoffState nextState;

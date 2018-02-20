@@ -27,7 +27,7 @@ DropOffResult DropOffController::execute(
 	STagInfo tagInfo = countTags(targets, HOME_TAG_ID);
 	result.grip.fingersOpen = false;
 	result.grip.wristPos = WRIST_UP;
-	result.vel.linear = result.vel.yawError = 0.0;
+	result.cmd_vel.linear.x = result.cmd_vel.angular.z = 0.0;
 	result.result = DROPOFF_RESULT_BUSY;
 	// time since last state change
 	if(result.nextState != result.state) {
@@ -67,11 +67,11 @@ DropOffResult DropOffController::execute(
 			break;
 		case DROPOFF_STATE_CENTER:
 			// turn till nearest tag is centered
-			//result.vel.yawError = limit(-blockYawError, 0.2);
+			//result.cmd_vel.angular.z = limit(-blockYawError, 0.2);
 			if(tagInfo.leftCount > tagInfo.rightCount) {
-				result.vel.yawError = CENTERING_YAW_ERROR;
+				result.cmd_vel.angular.z = CENTERING_YAW_ERROR;
 			} else if(tagInfo.leftCount < tagInfo.rightCount) {
-				result.vel.yawError = -CENTERING_YAW_ERROR;
+				result.cmd_vel.angular.z = -CENTERING_YAW_ERROR;
 			} 
 			if(stateRunTime > ros::Duration(3.0)) {
 				if(targetLost) {
@@ -83,7 +83,7 @@ DropOffResult DropOffController::execute(
 			break;
 		case DROPOFF_STATE_FORWARD:
 			// forward for x seconds to get to clear area in center
-			result.vel.linear = FORWARD_VEL;
+			result.cmd_vel.linear.x = FORWARD_VEL;
 			if(stateRunTime >= ros::Duration(APPROACH_TIME)) {
 				result.nextState = DROPOFF_STATE_DROP_CUBE;
 			}
@@ -98,7 +98,7 @@ DropOffResult DropOffController::execute(
 		case DROPOFF_STATE_BACKUP:
 			// backward for x seconds to get clear of base before continuing
 			result.grip.fingersOpen = true;
-			result.vel.linear = -FORWARD_VEL;
+			result.cmd_vel.linear.x = -FORWARD_VEL;
 			if(stateRunTime >= ros::Duration(BACKUP_TIME)) {
 				result.nextState = DROPOFF_STATE_IDLE;
 				result.result = DROPOFF_RESULT_SUCCESS;
@@ -112,7 +112,7 @@ DropOffResult DropOffController::execute(
 		" Dist: "<<tagInfo.distance <<
 		" blockDist= "<< blockDist << 
 		" blockYawError= " << blockYawError <<
-		" cmd: ("<<result.vel.linear << ","<<result.vel.yawError<<")";
+		" cmd: ("<<result.cmd_vel.linear.x << ","<<result.cmd_vel.angular.z<<")";
 	result.status = ss.str();
 	return result;
 }

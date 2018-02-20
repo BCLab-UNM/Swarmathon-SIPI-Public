@@ -233,7 +233,7 @@ void sendToArduino(void) {
   // sprintf(moveCmd, "v,%d,%d\n", motor_left, motor_right); 
   os << "v," << motor_left << "," << motor_right << "\n";
   usb.sendData(os.str().c_str());
- // ROS_INFO_STREAM(os.str());
+  //ROS_INFO_STREAM(os.str() << ", " <<odom.twist.twist.linear.x);
 }
 
 // The finger and wrist handlers receive gripper angle commands in 
@@ -258,6 +258,7 @@ void wristAngleHandler(const std_msgs::Float32::ConstPtr& angle) {
 
 void serialActivityTimer(const ros::TimerEvent& e) {
   ostringstream os;
+  os << fixed << setprecision(1); 
   // finger command
   os << "f," << fingerAngle_cmd << "\n";
   // wrist command
@@ -284,8 +285,10 @@ void publishRosTopics() {
 void parseData(string str) {
   istringstream oss(str);
   string sentence;
+  int cnt=0;
 
   while (getline(oss, sentence, '\n')) {
+    cnt++;
     istringstream wss(sentence);
     string word;
 
@@ -343,6 +346,9 @@ void parseData(string str) {
       }
 
     }
+  }
+  if(cnt != 7) {
+    ROS_WARN_STREAM("USB expected 7 lines but read "<<cnt);
   }
 }
 

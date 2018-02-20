@@ -2,6 +2,7 @@
 #define Obstacle_CONTROLLER
 #include <ros/ros.h>
 #include <geometry_msgs/Pose2D.h>
+#include <geometry_msgs/Twist.h>
 #include <random_numbers/random_numbers.h>
 #include "DrivingController.h"
 
@@ -26,7 +27,7 @@ typedef enum {
 } EObstacleState;
 
 struct ObstacleResult {
-	CDriveCmd vel;
+  geometry_msgs::Twist cmd_vel;
 	EObstacleState state;
 	EObstacleState nextState;
 	EObstacleResult result;

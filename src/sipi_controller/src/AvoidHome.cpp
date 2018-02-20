@@ -23,7 +23,7 @@ AvoidResult AvoidController::execute(bool homeVisible) {
 	}
 	stateRunTime = ros::Time::now() - stateStartTime;
 
-	result.vel.yawError = result.vel.linear = 0.0;
+	result.cmd_vel.angular.z = result.cmd_vel.linear.x = 0.0;
 	result.result = AVOID_RESULT_BUSY;
 	switch(result.state) {
 		case AVOID_STATE_IDLE:
@@ -41,13 +41,13 @@ AvoidResult AvoidController::execute(bool homeVisible) {
 			}
 			break;
 		case AVOID_STATE_RIGHT:
-			result.vel.yawError = -TURN_VEL;
+			result.cmd_vel.angular.z = -TURN_VEL;
 			if(stateRunTime > ros::Duration(TURN_RIGHT_TIME)) {
 				result.nextState = AVOID_STATE_FORWARD;
 			}
 			break;
 		case AVOID_STATE_FORWARD:
-			result.vel.linear = FORWARD_VEL;
+			result.cmd_vel.linear.x = FORWARD_VEL;
 			if(stateRunTime > ros::Duration(FORWARD_TIME)) {
 				result.result = AVOID_RESULT_SUCCESS;
 				result.nextState = AVOID_STATE_IDLE;
@@ -61,7 +61,7 @@ AvoidResult AvoidController::execute(bool homeVisible) {
 		" nextState "<< result.nextState  <<
 		" result= " << result.result <<
 		std::setprecision(2) <<
-		" vel="<<result.vel.linear<<","<<result.vel.yawError;
+		" vel="<<result.cmd_vel.linear.x<<","<<result.cmd_vel.angular.z;
 	result.status = ss.str();
 	return result;
 }

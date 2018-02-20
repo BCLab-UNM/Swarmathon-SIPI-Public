@@ -1,6 +1,6 @@
 #include "sipi_controller/SearchController.h"
 
-#define MAX_DIST 5  // how far from center to go
+#define MAX_DIST 2  // how far from center to go
 #define MAX_DIST_FINALS 8  // how far from center to go
 #define MIN_DIST 1  // how close to center to return
 #define ANGLE_STEP 0.1 // radians between spokes

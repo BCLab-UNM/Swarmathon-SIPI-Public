@@ -30,7 +30,7 @@ ObstacleResult ObstacleController::execute(int obstacleDetected) {
 	}
 	stateRunTime = ros::Time::now() - stateStartTime;
 
-	result.vel.yawError = result.vel.linear = 0.0;
+	result.cmd_vel.angular.z = result.cmd_vel.linear.x = 0.0;
 	result.result = OBS_RESULT_BUSY;
 	switch(result.state) {
 		case OBS_STATE_IDLE:
@@ -48,19 +48,19 @@ ObstacleResult ObstacleController::execute(int obstacleDetected) {
 			}
 			break;
 		case OBS_STATE_RIGHT:
-			result.vel.yawError = -TURN_VEL;
+			result.cmd_vel.angular.z = -TURN_VEL;
 			if(stateRunTime > ros::Duration(TURN_RIGHT_TIME)) {
 				result.nextState = OBS_STATE_FORWARD;
 			}
 			break;
 		case OBS_STATE_FORWARD:
-			result.vel.linear = FORWARD_VEL;
+			result.cmd_vel.linear.x = FORWARD_VEL;
 			if(stateRunTime > ros::Duration(FORWARD_TIME)) {
 				result.nextState = OBS_STATE_LEFT;
 			}
 			break;
 		case OBS_STATE_LEFT:
-			result.vel.yawError = TURN_VEL;
+			result.cmd_vel.angular.z = TURN_VEL;
 			if(stateRunTime > ros::Duration(TURN_LEFT_TIME)) {
 				if (obstacleDetected > 0) {
 					count++;
@@ -75,13 +75,13 @@ ObstacleResult ObstacleController::execute(int obstacleDetected) {
 				}
 			}
 		case OBS_STATE_TURNAROUND:
-			result.vel.yawError = TURN_VEL;
+			result.cmd_vel.angular.z = TURN_VEL;
 			if(stateRunTime > ros::Duration(TURN_AROUND_TIME)) {
 				result.nextState = OBS_STATE_CENTER;
 			}
 			break;
 		case OBS_STATE_CENTER:
-			result.vel.linear = FORWARD_VEL;
+			result.cmd_vel.linear.x = FORWARD_VEL;
 			if(stateRunTime > ros::Duration(CENTER_FORWARD_TIME)) {
 				result.result = OBS_RESULT_FAILED;
 				result.nextState = OBS_STATE_IDLE;
@@ -97,7 +97,7 @@ ObstacleResult ObstacleController::execute(int obstacleDetected) {
 		" result= " << result.result <<
 		" obstacle= "<< obstacleDetected <<
 		std::setprecision(2) <<
-		" vel="<<result.vel.linear<<","<<result.vel.yawError;
+		" vel="<<result.cmd_vel.linear.x<<","<<result.cmd_vel.angular.z;
 	result.status = ss.str();
 	return result;
 }

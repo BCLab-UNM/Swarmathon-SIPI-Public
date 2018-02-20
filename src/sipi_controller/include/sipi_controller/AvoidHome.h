@@ -2,6 +2,7 @@
 #define AVOID_HOME_H
 #include <ros/ros.h>
 #include <geometry_msgs/Pose2D.h>
+#include <geometry_msgs/Twist.h>
 #include <random_numbers/random_numbers.h>
 #include "DrivingController.h"
 
@@ -19,7 +20,7 @@ typedef enum {
 } EAvoidState;
 
 struct AvoidResult {
-	CDriveCmd vel;
+  geometry_msgs::Twist cmd_vel;
 	EAvoidState state;
 	EAvoidState nextState;
 	EAvoidResult result;

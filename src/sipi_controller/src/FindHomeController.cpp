@@ -24,12 +24,12 @@ Finding_Home_Result FindHomeController::execute(
 		case LOSER_STATE_IDLE:
 			startTime = ros::Time::now();
 			result.state = LOSER_STATE_SEARCH;
-			result.vel.linear = 0.2;
-			result.vel.yawError = 0.3;
+			result.cmd_vel.linear.x = 0.2;
+			result.cmd_vel.angular.z = 0.3;
 			break;
 		case LOSER_STATE_SEARCH:
-			result.vel.linear = 0.2;
-			result.vel.yawError = 0.3-(dt.toSec()/100.0);
+			result.cmd_vel.linear.x = 0.2;
+			result.cmd_vel.angular.z = 0.3-(dt.toSec()/100.0);
 			if(dt > ros::Duration(20.0)) {
 				result.state = LOSER_STATE_IDLE;
 				result.result = LOSER_RESULT_FAILED;
@@ -44,7 +44,7 @@ Finding_Home_Result FindHomeController::execute(
 	ss << " FindHome state: "<< result.state << std::setprecision(2) <<
 		" time: " << dt <<
 		" state: " << result.state <<
-		" cmd: " << result.vel.linear << "," << result.vel.yawError <<
+		" cmd: " << result.cmd_vel.linear.x << "," << result.cmd_vel.angular.z <<
 		" result= " << result.result;
 	result.status = ss.str();
 	return result;
