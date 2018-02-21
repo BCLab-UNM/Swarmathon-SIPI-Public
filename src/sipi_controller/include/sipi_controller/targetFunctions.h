@@ -2,6 +2,7 @@
 #define TARGET_FUNCTIONS_H
 #include <apriltags_ros/AprilTagDetectionArray.h>
 #include <ros/ros.h>
+#include <geometry_msgs/Pose2D.h>
 /***
 	generic functions regarding analysis of april tag targets
  */
@@ -29,6 +30,12 @@ bool checkForTarget(
 int countTargets(
 		const apriltags_ros::AprilTagDetectionArray& targets,
 		int tagId
+		);
+
+void getTagsVector(
+		const apriltags_ros::AprilTagDetectionArray& targets,
+    std::vector<geometry_msgs::Pose2D> &home_tags,
+    int tag_id
 		);
 
 typedef struct {

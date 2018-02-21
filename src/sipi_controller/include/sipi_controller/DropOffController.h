@@ -35,7 +35,8 @@ class DropOffController
 		DropOffController(void);
 		void reset(void);
 		DropOffResult execute(
-				const apriltags_ros::AprilTagDetectionArray& targets
+				const apriltags_ros::AprilTagDetectionArray& targets,
+        const std::vector<geometry_msgs::Pose2D> &home_tags
 				);
 	private:
 		DropOffResult result;

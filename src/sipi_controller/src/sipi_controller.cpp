@@ -1,5 +1,6 @@
 #include "sipi_controller/sipi_controller.h"
 
+#include <geometry_msgs/Pose2D.h>
 ///////////////////////////////////////////////////////////////////
 sipi_controller::sipi_controller(
     const std::string &name, 
@@ -83,12 +84,12 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
   // publish state machine string 
   std::ostringstream poses;
   poses <<  fixed << setprecision(1) << 
-    " currentPoseA (" <<currentPoseArena.x<<","
+    " currentA (" <<currentPoseArena.x<<","
     << currentPoseArena.y <<", "<<currentPoseArena.theta<<") " <<
     " O (" <<currentPoseOdom.x<<","
     <<currentPoseOdom.y << ","<<currentPoseOdom.theta<<") ";
   std::ostringstream goal_poses;
-  goal_poses << " goalPoseA (" << goalPoseArena.x <<","
+  goal_poses << " goalA (" << goalPoseArena.x <<","
     <<goalPoseArena.y<<","<<goalPoseArena.theta<<") " <<
     " O (" << goalPoseOdom.x <<","
     <<goalPoseOdom.y<<","<<goalPoseOdom.theta<<") ";
@@ -101,6 +102,8 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
   // again if the target is missed multiple times
   homeVisible = checkForTarget(tagDetectionArray, HOME_TAG_ID);
   blockVisible = checkForTarget(tagDetectionArray, BLOCK_TAG_ID);
+  std::vector<geometry_msgs::Pose2D> home_tags;
+  getTagsVector(tagDetectionArray, home_tags, 256);
   if(homeVisible) {
     missedHomeCount = 0;
     homeSeen = true;
@@ -180,6 +183,11 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         nextState = STATE_MACHINE_INIT;
       }
       status_stream << "MANUAL: " << " Mode= " << currentMode << poses.str();
+      // print out the home_tag array
+      status_stream << setprecision(3);
+      for( auto t : home_tags) 
+        status_stream << "("<<t.x<<","<<t.y<<","<<t.theta<<")" ;
+      status_stream << setprecision(1);
       break;
     case STATE_MACHINE_INIT:
       if (stateRunTime > ros::Duration(1)) {
@@ -298,7 +306,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       break;
     case STATE_MACHINE_DROPOFF: 
       // move to center of base, drop cube, back up, then continue search
-      dropoffResult = dropoffController.execute(tagDetectionArray);
+      dropoffResult = dropoffController.execute(tagDetectionArray, home_tags);
       cmd_vel_ = dropoffResult.cmd_vel;
       grip = dropoffResult.grip;
       // TODO check for success instead

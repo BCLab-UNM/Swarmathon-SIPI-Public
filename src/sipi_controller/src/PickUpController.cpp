@@ -14,7 +14,7 @@
 #define NUM_ALLOWED_MISSES 10
 // timing constants
 #define PICKUP_CENTER_TIMEOUT 2.0 // how long to try to center target
-#define PICKUP_FORWARD_TIME 1.5		// how long to drive forward to scoop cube
+#define PICKUP_FORWARD_TIME 1.4		// how long to drive forward to scoop cube
 #define PICKUP_PICKUP_TIME 1.0		// how to wait for pickup to close
 #define PICKUP_BACKUP_TIME 1.0		// how long to backup after done
 #define PICKUP_VERIFY_TIME 1.0		// how long to try to verify target
@@ -130,8 +130,8 @@ Result PickUpController::execute(
     case PickupController::State::VERIFY:
       result.grip.fingersOpen = false;
       result.grip.wristPos = WRIST_VERIFY;
-      if(obstacleDetected == 4 || (blockDist < 0.1 && targetVisible)) {
-        result.result = ResultCode::SUCCESS;
+      if(obstacleDetected == 4 || (blockDist < 0.2 && targetVisible)) { 
+        result.result =ResultCode::SUCCESS;
         result.nextState = PickupController::State::IDLE;
       } else if(stateRunTime > ros::Duration(PICKUP_VERIFY_TIME)) {
         result.nextState = PickupController::State::BACKUP;

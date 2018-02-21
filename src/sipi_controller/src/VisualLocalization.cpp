@@ -97,7 +97,11 @@ void CvisualLocalization::apriltagObservedHandler(
     double r,p,y;
     tf::Matrix3x3(tParentToChild.getRotation()).getRPY(r,p,y);
     tf::Quaternion q;
-    q.setRPY(0,0,y);
+
+//    q.setRPY(0,0,y);
+    // removed the rotation from the transfor because new 
+    // home tag orientation is not constant
+    q.setRPY(0,0,0);
     tParentToChild.setRotation(q);
     tf::poseTFToMsg(tParentToChild, visualLocationMsg.pose.pose);
     /*

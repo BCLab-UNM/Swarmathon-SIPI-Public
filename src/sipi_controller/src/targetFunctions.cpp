@@ -1,4 +1,5 @@
 #include "sipi_controller/targetFunctions.h"
+#include "sipi_controller/Localization.h"
 #define CAMERA_X_OFFSET 0.02
 bool checkForTarget(
 		const apriltags_ros::AprilTagDetectionArray& targets,
@@ -105,5 +106,26 @@ STagInfo countTags(
 		 }
 	 */
 	return info;
+}
+
+void getTagsVector(
+		const apriltags_ros::AprilTagDetectionArray& targets,
+    std::vector<geometry_msgs::Pose2D> &home_tags,
+    int tag_id
+		)
+{
+	geometry_msgs::Pose2D tagPose;
+	geometry_msgs::Pose p;
+  home_tags.clear();
+	for (auto det : targets.detections) 
+	{
+		if(det.id == tag_id) {
+			p = det.pose.pose;
+      tagPose.x = p.position.z; 
+      tagPose.y = -p.position.x; 
+      tagPose.theta = thetaFromQuat(p.orientation);
+      home_tags.push_back(tagPose);
+		}
+	}
 }
 
