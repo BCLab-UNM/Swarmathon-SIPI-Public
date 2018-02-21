@@ -18,8 +18,8 @@
 #define PICKUP_PICKUP_TIME 1.0		// how to wait for pickup to close
 #define PICKUP_BACKUP_TIME 1.0		// how long to backup after done
 #define PICKUP_VERIFY_TIME 1.0		// how long to try to verify target
-#define PICKUP_FORWARD_VEL 0.1		// how fast to go forward to scoop
-#define PICKUP_BACKUP_VEL 0.1	// how fast to go backward to try to reacquire
+#define PICKUP_FORWARD_VEL 0.2		// how fast to go forward to scoop
+#define PICKUP_BACKUP_VEL 0.2	// how fast to go backward to try to reacquire
 #define PICKUP_TURN_CONSTANT 0.2		// how fast to turn open loop
 using namespace PickupController; 
 PickUpController::PickUpController(void) 
@@ -72,7 +72,7 @@ Result PickUpController::execute(
     case PickupController::State::IDLE:
       result.grip.fingersOpen = true;
       result.grip.wristPos = WRIST_UP;
-      if(stateRunTime > ros::Duration(3.0)) {
+      if(stateRunTime > ros::Duration(1.0)) {
         if(targetLost) {
           ROS_WARN("PICKUP target lost from IDLE!");
           result.nextState = PickupController::State::BACKUP;
@@ -86,23 +86,22 @@ Result PickUpController::execute(
       // allow 5 sec then proceed if cube is still visible
       result.grip.fingersOpen = true;
       result.grip.wristPos = WRIST_DOWN;
-      result.cmd_vel.angular.z = blockYawError > 0 ? -0.1 : 0.1;
-      result.cmd_vel.linear.x = distErr > 0 ? 0.05 : 0.05;
+      result.cmd_vel.angular.z = blockYawError > 0 ? -0.2 : 0.2;
+//      result.cmd_vel.linear.x = distErr > 0 ? 0.05 : 0.05;
       if(stateRunTime > ros::Duration(3.0)) {
         if(targetLost) {
           ROS_WARN("PICKUP target lost!");
           result.nextState = PickupController::State::BACKUP;
         } else {
-          result.nextState = PickupController::State::FORWARD;
+          result.nextState = PickupController::State::DIST;
         }
       }
       break;
     case PickupController::State::DIST:
       // move  to right distance
-      // allow 5 sec then proceed
       result.grip.fingersOpen = true;
       result.grip.wristPos = WRIST_DOWN;
-      result.cmd_vel.angular.z = limit(-blockYawError, 0.2);
+ //     result.cmd_vel.angular.z = limit(-blockYawError, 0.2);
       result.cmd_vel.linear.x = limit(distErr, 0.2);
       if(stateRunTime > ros::Duration(3)) {
         if(targetLost) {
