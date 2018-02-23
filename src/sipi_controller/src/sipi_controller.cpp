@@ -103,7 +103,9 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
   homeVisible = checkForTarget(tagDetectionArray, HOME_TAG_ID);
   blockVisible = checkForTarget(tagDetectionArray, BLOCK_TAG_ID);
   std::vector<geometry_msgs::Pose2D> home_tags;
+  std::vector<geometry_msgs::Pose2D> cube_tags;
   getTagsVector(tagDetectionArray, home_tags, 256);
+  getTagsVector(tagDetectionArray, cube_tags, 0);
   if(homeVisible) {
     missedHomeCount = 0;
     homeSeen = true;
@@ -185,9 +187,18 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       status_stream << "MANUAL: " << " Mode= " << currentMode << poses.str();
       // print out the home_tag array
       status_stream << setprecision(3);
-      for( auto t : home_tags) 
-        status_stream << "("<<t.x<<","<<t.y<<","<<t.theta<<")" ;
+      if (!home_tags.empty()) {
+	status_stream << " Home:";
+      	for( auto t : home_tags) 
+          status_stream << "("<<t.x<<","<<t.y<<","<<t.theta<<")" ;
+      }
+      if (!cube_tags.empty()) {
+        status_stream << " Cubes:";
+        for( auto t : cube_tags) 
+          status_stream << "("<<t.x<<","<<t.y<<","<<t.theta<<")" ;
+      }
       status_stream << setprecision(1);
+
       break;
     case STATE_MACHINE_INIT:
       if (stateRunTime > ros::Duration(1)) {
@@ -324,12 +335,13 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       break;
     case STATE_MACHINE_PICKUP: 
       // pickup cube 
-      if(stateRunTime > ros::Duration(PICKUP_TIMEOUT)) {
+      if(stateRunTime > ros::Duration(30)) {
+        ROS_WARN("PICKUP_TIMEOUT exceeded in sipi_controller");
         nextState = STATE_MACHINE_SEARCH;
         break;
       }
       pickupResult = pickUpController.execute(obstacleDetected, 
-          tagDetectionArray);
+          cube_tags);
       cmd_vel_ = pickupResult.cmd_vel;
       grip = pickupResult.grip;
       if (pickupResult.result == PickupController::ResultCode::SUCCESS) {

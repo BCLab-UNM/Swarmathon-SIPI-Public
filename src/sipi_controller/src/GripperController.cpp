@@ -4,7 +4,7 @@
 #define FINGER_CLOSED_VALUE M_PI_2
 #define WRIST_VERIFY_VALUE 0
 #define WRIST_UP_VALUE 0.7
-#define WRIST_DOWN_VALUE 1.25 
+#define WRIST_DOWN_VALUE 1.3 
 
 void GripperController::move(CGripCmd grip) 
 {

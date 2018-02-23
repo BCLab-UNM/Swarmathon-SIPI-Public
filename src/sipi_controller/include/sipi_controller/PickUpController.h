@@ -3,6 +3,7 @@
 #define HEADERFILE_H
 #include <apriltags_ros/AprilTagDetectionArray.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Pose2D.h>
 #include <ros/ros.h>
 #include "GripperController.h"
 #include "DrivingController.h"
@@ -17,8 +18,8 @@ namespace PickupController {
 
   enum class State : int {
     IDLE,	// starting point
-    CENTER_COARSE,	// turn so that cube is in center
-    DIST,	//move to the correct distance
+    CENTER,	// turn so that cube is in center
+    DISTANCE,	//move to the correct distance
     FORWARD,	// go forward to scoop up cube
     PICKUP,		// pick up cube
     VERIFY,		// check if successful
@@ -44,13 +45,13 @@ namespace PickupController {
 
       Result execute(
           int obstacleDetection,
-          const apriltags_ros::AprilTagDetectionArray& targets
+          const std::vector<geometry_msgs::Pose2D> targets
           ); 
 
       void reset();
     private:
-      //yaw error to target block 
-      double blockYawError;
+      //yaw angle to target block 
+      double blockYaw;
       //distance to target block from front of robot
       double blockDist;
       double distErr;

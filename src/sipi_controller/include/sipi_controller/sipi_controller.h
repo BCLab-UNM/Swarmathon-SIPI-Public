@@ -33,7 +33,6 @@
 #include "sipi_controller/Localization.h"
 #include "sipi_controller/targetFunctions.h"
 
-#define PICKUP_TIMEOUT 20
 using namespace std;
 
 class sipi_controller {
