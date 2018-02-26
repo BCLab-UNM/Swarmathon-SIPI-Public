@@ -5,7 +5,11 @@
 #include <std_msgs/String.h>
 #include <ros/ros.h>
 using namespace std;
-
+/*** 
+NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
+this no longer works with the 2018 home base design
+DO NOT USE
+*/
 /*** constructor.  needs handle to ros interface for messages */
 CvisualLocalization::CvisualLocalization(string _name, ros::NodeHandle nh) 
 {

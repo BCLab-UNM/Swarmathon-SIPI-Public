@@ -77,10 +77,6 @@ sipi_controller::sipi_controller(
 }
 
 void sipi_controller::stateMachine(const ros::TimerEvent&) {
-  // first find where we are
-  // to ignore GPS and visual, set both to Odom
-  currentPoseOdom = localization->getPoseOdom();
-  currentPoseArena = localization->getPoseArena();
   // publish state machine string 
   std::ostringstream poses;
   poses <<  fixed << setprecision(1) << 
@@ -97,15 +93,21 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
   status_stream <<  fixed << setprecision(1) << 
     stateRunTime.toSec() << " " << carryingCube << " ";
 
-  // this allows the target to dissappear briefly but not consider it lost
-  // at first (reset) homeSeen is false. but then it only becomes false
-  // again if the target is missed multiple times
-  homeVisible = checkForTarget(tagDetectionArray, HOME_TAG_ID);
-  blockVisible = checkForTarget(tagDetectionArray, BLOCK_TAG_ID);
+  // translate the tag detections into vectors of tag locations
   std::vector<geometry_msgs::Pose2D> home_tags;
   std::vector<geometry_msgs::Pose2D> cube_tags;
   getTagsVector(tagDetectionArray, home_tags, 256);
   getTagsVector(tagDetectionArray, cube_tags, 0);
+  homeVisible = !home_tags.empty();
+  blockVisible = !cube_tags.empty();
+  // first find where we are
+  // to ignore GPS and visual, set both to Odom
+  localization->execute(home_tags);
+  currentPoseOdom = localization->getPoseOdom();
+  currentPoseArena = localization->getPoseArena();
+  // this allows the target to dissappear briefly but not consider it lost
+  // at first (reset) homeSeen is false. but then it only becomes false
+  // again if the target is missed multiple times
   if(homeVisible) {
     missedHomeCount = 0;
     homeSeen = true;
