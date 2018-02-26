@@ -72,8 +72,8 @@ geometry_msgs::Pose2D Localization::poseOdomToArena(
 {
   geometry_msgs::Pose2D p;
   
-  p.x = poseOdom2D.x * 2.0 - poseGPS.x + arena_offset.x;
-  p.y = poseOdom2D.y * 2.0 - poseGPS.y + arena_offset.y;
+  p.x = poseGPS.x + arena_offset.x;
+  p.y = poseGPS.y + arena_offset.y;
   p.theta = poseOdom2D.theta;
   return p;
 }
@@ -83,8 +83,8 @@ geometry_msgs::Pose2D Localization::poseArenaToOdom(
     )
 {
   geometry_msgs::Pose2D p;
-  p.x = poseArena2D.x - arena_offset.x - poseGPS.x;
-  p.y = poseArena2D.y - arena_offset.y - poseGPS.y;
+  p.x = poseArena2D.x - arena_offset.x - poseGPS.x + poseOdom.x;
+  p.y = poseArena2D.y - arena_offset.y - poseGPS.y + poseOdom.y;
   return p;
 }
 // transform a 2D pose from one frame to another
