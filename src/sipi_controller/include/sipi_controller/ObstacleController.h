@@ -3,6 +3,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Pose2D.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Point.h>
 #include <random_numbers/random_numbers.h>
 #include "DrivingController.h"
 
@@ -41,7 +42,7 @@ class ObstacleController {
     ObstacleController();
     void reset(void);
 	ObstacleResult result;
-	ObstacleResult execute(int obstacleDetected);
+	ObstacleResult execute(const geometry_msgs::Point &obstacles);
   private:
 	int count;
 ros::Time stateStartTime; // start time for states

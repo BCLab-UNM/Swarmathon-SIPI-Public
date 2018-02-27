@@ -17,6 +17,7 @@
 #include <sensor_msgs/Joy.h>
 #include <sensor_msgs/Range.h>
 #include <geometry_msgs/Pose2D.h>
+#include <geometry_msgs/Point.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 #include <apriltags_ros/AprilTagDetectionArray.h>
@@ -69,6 +70,9 @@ class sipi_controller {
     ros::Subscriber joySubscriber;
     ros::Subscriber modeSubscriber;
     ros::Subscriber obstacleSubscriber;
+    ros::Subscriber sonarLeftSubscriber;
+    ros::Subscriber sonarCenterSubscriber;
+    ros::Subscriber sonarRightSubscriber;
     ros::Subscriber targetSubscriber;
 
     // Timers
@@ -85,7 +89,9 @@ class sipi_controller {
     void modeHandler(const std_msgs::UInt8::ConstPtr& message);
     void targetHandler(const apriltags_ros::AprilTagDetectionArray::ConstPtr& 
         tagInfo);
-    void obstacleHandler(const std_msgs::UInt8::ConstPtr& message);
+    void sonarLeftHandler(const sensor_msgs::Range::ConstPtr& message);
+    void sonarCenterHandler(const sensor_msgs::Range::ConstPtr& message);
+    void sonarRightHandler(const sensor_msgs::Range::ConstPtr& message);
     void stateMachine(const ros::TimerEvent&);
     void publishStatusTimerEventHandler(const ros::TimerEvent& event);
     void targetDetectedReset(const ros::TimerEvent& event);
@@ -151,6 +157,7 @@ class sipi_controller {
     void setGoalPose(geometry_msgs::Pose2D pose);
     void setGoalPose(double x, double y);
     sensor_msgs::Joy lastJoyCmd;
+    geometry_msgs::Point obstacles;
 };
 
 #endif // _SIPI_CONTROLLER_INCLUDE_SIPI_CONTROLLER_SIPI_CONTROLLER_H

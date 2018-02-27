@@ -12,6 +12,7 @@
 
 ObstacleController::ObstacleController() {
 	//	reset();
+	result.state = result.nextState = OBS_STATE_IDLE;
 }
 void ObstacleController::reset(void)
 {
@@ -22,8 +23,10 @@ void ObstacleController::reset(void)
 /**
  * The obstacle avoidance state machine
  */
-ObstacleResult ObstacleController::execute(int obstacleDetected) {
+ObstacleResult ObstacleController::execute(const geometry_msgs::Point &obstacles) {
+	int obstacleDetected = (obstacles.x < 0.5 || obstacles.y < 0.5 || obstacles.z < 0.5);
 	// time since last state change
+
 	if(result.nextState != result.state) {
 		stateStartTime =  ros::Time::now();
 		result.state = result.nextState;
@@ -48,20 +51,20 @@ ObstacleResult ObstacleController::execute(int obstacleDetected) {
 			}
 			break;
 		case OBS_STATE_RIGHT:
-			result.cmd_vel.angular.z = -TURN_VEL;
-			if(stateRunTime > ros::Duration(TURN_RIGHT_TIME)) {
+			result.cmd_vel.angular.z = -0.5;
+			if(stateRunTime > ros::Duration(4)) {
 				result.nextState = OBS_STATE_FORWARD;
 			}
 			break;
 		case OBS_STATE_FORWARD:
-			result.cmd_vel.linear.x = FORWARD_VEL;
-			if(stateRunTime > ros::Duration(FORWARD_TIME)) {
+			result.cmd_vel.linear.x = 0.2;
+			if(stateRunTime > ros::Duration(2)) {
 				result.nextState = OBS_STATE_LEFT;
 			}
 			break;
 		case OBS_STATE_LEFT:
-			result.cmd_vel.angular.z = TURN_VEL;
-			if(stateRunTime > ros::Duration(TURN_LEFT_TIME)) {
+			result.cmd_vel.angular.z = -0.5;
+			if(stateRunTime > ros::Duration(4)) {
 				if (obstacleDetected > 0) {
 					count++;
 					if(count > 3) {

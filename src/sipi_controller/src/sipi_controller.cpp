@@ -43,8 +43,12 @@ sipi_controller::sipi_controller(
       &sipi_controller::modeHandler, this);
   targetSubscriber = mNH.subscribe((name + "/targets"), 10, 
       &sipi_controller::targetHandler, this);
-  obstacleSubscriber = mNH.subscribe((name + "/obstacle"), 10, 
-      &sipi_controller::obstacleHandler, this);
+  sonarLeftSubscriber = mNH.subscribe((name + "/sonarLeft"), 10, 
+      &sipi_controller::sonarLeftHandler, this);
+  sonarCenterSubscriber = mNH.subscribe((name + "/sonarCenter"), 10, 
+      &sipi_controller::sonarCenterHandler, this);
+  sonarRightSubscriber = mNH.subscribe((name + "/sonarRight"), 10, 
+      &sipi_controller::sonarRightHandler, this);
 
   status_publisher = mNH.advertise<std_msgs::String>(
       (name + "/status"), 10, true);
@@ -117,7 +121,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       homeSeen = false;
     }
   }
-  if(obstacleDetected > 0 && obstacleDetected < 4) {
+  if(obstacles.x < 0.5 || obstacles.y < 0.5 || obstacles.z < 0.5) {
     obstacleCount++;
   } else {
     obstacleCount = 0;
@@ -199,6 +203,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         for( auto t : cube_tags) 
           status_stream << "("<<t.x<<","<<t.y<<","<<t.theta<<")" ;
       }
+      status_stream << "OBS("<<obstacles.x<<","<<obstacles.y<<","<<obstacles.z<<")";
       status_stream << setprecision(1);
 
       break;
@@ -252,7 +257,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       break;
       // avoid an obstacle then continue
     case STATE_MACHINE_OBSTACLE: 
-      obstacleResult = obstacleController.execute(obstacleDetected);
+      obstacleResult = obstacleController.execute(obstacles);
       cmd_vel_ = obstacleResult.cmd_vel;
       if(obstacleResult.result == OBS_RESULT_SUCCESS) {
         nextState = prevState;
@@ -410,12 +415,14 @@ void sipi_controller::modeHandler(const std_msgs::UInt8::ConstPtr& message) {
   currentMode = message->data;
 }
 
-void sipi_controller::obstacleHandler(const std_msgs::UInt8::ConstPtr& message) {
-  if(machineBusy) {
-    ROS_DEBUG("obstacleHandler called while machineBusy");
-    return;
-  }
-  obstacleDetected = message->data;
+void sipi_controller::sonarLeftHandler(const sensor_msgs::Range::ConstPtr& message) {
+	obstacles.x = message->range;
+}
+void sipi_controller::sonarCenterHandler(const sensor_msgs::Range::ConstPtr& message) {
+	obstacles.y = message->range;
+}
+void sipi_controller::sonarRightHandler(const sensor_msgs::Range::ConstPtr& message) {
+	obstacles.z = message->range;
 }
 
 void sipi_controller::joyCmdHandler(

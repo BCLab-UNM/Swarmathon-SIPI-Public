@@ -39,4 +39,4 @@ then
     echo "Error: u-blox GPS device not found"
 fi
 
-roslaunch sipi_controller swarmie_real.launch name:=$HOSTNAME arduino_dev:=/dev/$microcontrollerDevicePath gps_dev:=/dev/$gpsDevicePath use_gps:="true"
+roslaunch sipi_controller swarmie_real.launch name:=$HOSTNAME arduino_dev:=/dev/$microcontrollerDevicePath gps_dev:=/dev/$gpsDevicePath use_gps:="false"
