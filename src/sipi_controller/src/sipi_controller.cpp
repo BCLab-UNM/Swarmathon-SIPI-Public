@@ -204,7 +204,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         for( auto t : cube_tags) 
           status_stream << "("<<t.x<<","<<t.y<<","<<t.theta<<")" ;
       }
-      status_stream << "OBS("<<ultrasound.x<<","<<ultrasound.y<<","<<ultrasound.z<<")";
+      status_stream << "OBS "<< obstacle_detected <<","<<obstacle_count << "("<<ultrasound.x<<","<<ultrasound.y<<","<<ultrasound.z<<")";
       status_stream << setprecision(1);
 
       break;

@@ -13,9 +13,9 @@ void ObstacleController::reset(void) {
 }
 
 bool Obstacle::obstacleDetected(const geometry_msgs::Point &ultrasound) {
-  int distance = 0.5;
-  return ultrasound.x < distance || ultrasound.y < distance || 
-    ultrasound.z < distance;
+  double distance = 0.5;
+  return (ultrasound.x < distance || ultrasound.y < distance || 
+    ultrasound.z < distance);
 }
 
 /**
