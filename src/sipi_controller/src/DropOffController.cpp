@@ -12,8 +12,9 @@
 using namespace Dropoff; 
 
 DropOffController::DropOffController() {
-  //reset();
+  result.state = result.nextState = State::IDLE;
 }
+
 void DropOffController::reset(void) {
   result.state = result.nextState = State::IDLE;
   result.result = ResultCode::SUCCESS;

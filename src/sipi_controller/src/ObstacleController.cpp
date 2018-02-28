@@ -8,14 +8,14 @@ ObstacleController::ObstacleController(void) {
 
 void ObstacleController::reset(void) {
   count = 0;
-  result.state = State::IDLE;
+  result.state = result.nextState = State::IDLE;
   stateStartTime =  ros::Time::now();
 }
 
 bool Obstacle::obstacleDetected(const geometry_msgs::Point &ultrasound) {
   double distance = 0.5;
   return (ultrasound.x < distance || ultrasound.y < distance || 
-    ultrasound.z < distance);
+      ultrasound.z < distance);
 }
 
 /**
@@ -98,9 +98,9 @@ Result ObstacleController::execute(
     std::setprecision(1) <<" time: " << stateRunTime <<
     " nextState "<< (int)result.nextState  <<
     " result= " << (int)result.result <<
-    " obstacle= "<< obstacle_detected <<
     std::setprecision(2) <<
     " vel="<<result.cmd_vel.linear.x<<","<<result.cmd_vel.angular.z;
+  ss << " OBS "<< obstacle_detected <<","<< count << "("<<ultrasound.x<<","<<ultrasound.y<<","<<ultrasound.z<<")";
   result.status = ss.str();
   return result;
 }
