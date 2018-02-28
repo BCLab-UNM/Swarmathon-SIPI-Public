@@ -96,10 +96,8 @@ class sipi_controller {
     void publishStatusTimerEventHandler(const ros::TimerEvent& event);
     void targetDetectedReset(const ros::TimerEvent& event);
 
-    // GLOBAL VARIABLES
-    // these should really be in a class
-    int obstacleDetected;
-    int obstacleCount;
+    bool obstacle_detected;
+    int obstacle_count;
     geometry_msgs::Twist cmd_vel_;
     char host[128];
     std::string name;
@@ -109,7 +107,7 @@ class sipi_controller {
     PickupController::Result pickupResult;
     DropOffResult dropoffResult;
     Finding_Home_Result findResult;
-    ObstacleResult obstacleResult;
+    Obstacle::Result obstacleResult;
     AvoidResult avoidResult;
     ros::Time stateStartTime;
     ros::Duration stateRunTime;
@@ -122,7 +120,7 @@ class sipi_controller {
     PickupController::PickUpController pickUpController;
     DropOffController dropoffController;
     SearchController searchController;
-    ObstacleController obstacleController;
+    Obstacle::ObstacleController obstacleController;
     AvoidController avoidController;
     FindHomeController findHomeController;
     GripperController *gripperController;
@@ -157,7 +155,7 @@ class sipi_controller {
     void setGoalPose(geometry_msgs::Pose2D pose);
     void setGoalPose(double x, double y);
     sensor_msgs::Joy lastJoyCmd;
-    geometry_msgs::Point obstacles;
+    geometry_msgs::Point ultrasound;
 };
 
 #endif // _SIPI_CONTROLLER_INCLUDE_SIPI_CONTROLLER_SIPI_CONTROLLER_H

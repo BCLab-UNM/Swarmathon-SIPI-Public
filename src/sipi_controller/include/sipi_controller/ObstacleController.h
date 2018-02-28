@@ -1,52 +1,56 @@
-#ifndef Obstacle_CONTROLLER
-#define Obstacle_CONTROLLER
+#ifndef OBSTACLE_CONTROLLER_H
+#define OBSTACLE_CONTROLLER_H
 #include <ros/ros.h>
 #include <geometry_msgs/Pose2D.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Point.h>
-#include <random_numbers/random_numbers.h>
-#include "DrivingController.h"
 
 /**
  * This class implements the search control algorithm for the rovers. The code
  * here should be modified and enhanced to improve search performance.
  */
-typedef enum {
-	OBS_RESULT_SUCCESS = 0,
-	OBS_RESULT_BUSY,
-	OBS_RESULT_FAILED
-} EObstacleResult;
+namespace Obstacle {
 
-typedef enum {
-	OBS_STATE_IDLE,	// starting point
-	OBS_STATE_PAUSE,	
-	OBS_STATE_RIGHT,	
-	OBS_STATE_FORWARD,
-	OBS_STATE_LEFT,
-	OBS_STATE_TURNAROUND,
-	OBS_STATE_CENTER,
-} EObstacleState;
-
-struct ObstacleResult {
-  geometry_msgs::Twist cmd_vel;
-	EObstacleState state;
-	EObstacleState nextState;
-	EObstacleResult result;
-	std::string status;
-	int count;
+enum class ResultCode {
+  SUCCESS = 0,
+  BUSY,
+  FAILED
 };
+
+enum class State : int {
+  IDLE,	// starting point
+  PAUSE,	
+  RIGHT,	
+  FORWARD,
+  LEFT,
+  TURNAROUND,
+  CENTER
+};
+
+struct Result {
+  geometry_msgs::Twist cmd_vel;
+  State state;
+  State nextState;
+  ResultCode result;
+  std::string status;
+  int count;
+};
+
+/*** external function to check ultrasound for any obstacle within a 
+  certain distance */
+bool obstacleDetected(const geometry_msgs::Point &ultrasound);
 
 class ObstacleController {
-
   public:
-    ObstacleController();
+    ObstacleController(void);
     void reset(void);
-	ObstacleResult result;
-	ObstacleResult execute(const geometry_msgs::Point &obstacles);
+    Result result;
+    Result execute(const geometry_msgs::Point &obstacles);
   private:
-	int count;
-ros::Time stateStartTime; // start time for states
-	ros::Duration stateRunTime; // time since last state change
+    int count;
+    ros::Time stateStartTime; // start time for states
+    ros::Duration stateRunTime; // time since last state change
 };
 
+}
 #endif /* Obstacle_CONTROLLER */

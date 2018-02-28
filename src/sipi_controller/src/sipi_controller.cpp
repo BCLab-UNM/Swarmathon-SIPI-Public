@@ -11,8 +11,8 @@ sipi_controller::sipi_controller(
   prevState = STATE_MACHINE_MANUAL;
   avoidPrevState = STATE_MACHINE_MANUAL;
   nextState = STATE_MACHINE_MANUAL;
-  obstacleDetected = 0;
-  obstacleCount = 0;
+  obstacle_detected = false;
+  obstacle_count = 0;
   numberOfRovers = 1; // how many rovers are active
   currentMode = 0;
   carryingCube = false;
@@ -121,10 +121,11 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       homeSeen = false;
     }
   }
-  if(obstacles.x < 0.5 || obstacles.y < 0.5 || obstacles.z < 0.5) {
-    obstacleCount++;
+  obstacle_detected = Obstacle::obstacleDetected(ultrasound);
+  if(obstacle_detected) {
+    obstacle_count++;
   } else {
-    obstacleCount = 0;
+    obstacle_count = 0;
   }
   /* 
      if we were doing something and try to drive over home
@@ -144,7 +145,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
      switch to obstacle state
    */
 #if 1
-  if((obstacleCount > 5) && (state != STATE_MACHINE_OBSTACLE) &&
+  if((obstacle_count > 5) && (state != STATE_MACHINE_OBSTACLE) &&
       (state != STATE_MACHINE_MANUAL) && (state != STATE_MACHINE_PICKUP)
       && (state != STATE_MACHINE_DROPOFF)) {
     // remember what we were doing
@@ -194,8 +195,8 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       // print out the home_tag array
       status_stream << setprecision(3);
       if (!home_tags.empty()) {
-	status_stream << " Home:";
-      	for( auto t : home_tags) 
+        status_stream << " Home:";
+        for( auto t : home_tags) 
           status_stream << "("<<t.x<<","<<t.y<<","<<t.theta<<")" ;
       }
       if (!cube_tags.empty()) {
@@ -203,7 +204,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         for( auto t : cube_tags) 
           status_stream << "("<<t.x<<","<<t.y<<","<<t.theta<<")" ;
       }
-      status_stream << "OBS("<<obstacles.x<<","<<obstacles.y<<","<<obstacles.z<<")";
+      status_stream << "OBS("<<ultrasound.x<<","<<ultrasound.y<<","<<ultrasound.z<<")";
       status_stream << setprecision(1);
 
       break;
@@ -257,11 +258,12 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       break;
       // avoid an obstacle then continue
     case STATE_MACHINE_OBSTACLE: 
-      obstacleResult = obstacleController.execute(obstacles);
+      obstacleResult = obstacleController.execute(ultrasound);
       cmd_vel_ = obstacleResult.cmd_vel;
-      if(obstacleResult.result == OBS_RESULT_SUCCESS) {
+      if(obstacleResult.result == Obstacle::ResultCode::SUCCESS) {
         nextState = prevState;
-      } else if(obstacleResult.result == OBS_RESULT_FAILED) {
+      } else if(obstacleResult.result == 
+          Obstacle::ResultCode::FAILED) {
         findHomeController.reset();
         nextState = STATE_MACHINE_FIND_HOME;
       }
@@ -300,7 +302,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       break;
     case STATE_MACHINE_FIND_HOME: 
       // if I went home but did not find it, search for it 	
-      findResult = findHomeController.execute(obstacleDetected, 
+      findResult = findHomeController.execute(obstacle_detected, 
           homeVisible);
       cmd_vel_ = findResult.cmd_vel;
       if(findResult.result == LOSER_RESULT_SUCCESS) {
@@ -347,7 +349,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         nextState = STATE_MACHINE_SEARCH;
         break;
       }
-      pickupResult = pickUpController.execute(obstacleDetected, 
+      pickupResult = pickUpController.execute(obstacle_detected, 
           cube_tags);
       cmd_vel_ = pickupResult.cmd_vel;
       grip = pickupResult.grip;
@@ -416,13 +418,13 @@ void sipi_controller::modeHandler(const std_msgs::UInt8::ConstPtr& message) {
 }
 
 void sipi_controller::sonarLeftHandler(const sensor_msgs::Range::ConstPtr& message) {
-	obstacles.x = message->range;
+  ultrasound.x = message->range;
 }
 void sipi_controller::sonarCenterHandler(const sensor_msgs::Range::ConstPtr& message) {
-	obstacles.y = message->range;
+  ultrasound.y = message->range;
 }
 void sipi_controller::sonarRightHandler(const sensor_msgs::Range::ConstPtr& message) {
-	obstacles.z = message->range;
+  ultrasound.z = message->range;
 }
 
 void sipi_controller::joyCmdHandler(
