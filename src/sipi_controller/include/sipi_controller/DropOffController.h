@@ -6,27 +6,27 @@
 #include <ros/ros.h>
 #include "GripperController.h"
 #include "DrivingController.h"
-typedef enum {
-	DROPOFF_RESULT_SUCCESS = 0,
-	DROPOFF_RESULT_BUSY,
-	DROPOFF_RESULT_FAIL
-} EDropoffResult;
+namespace Dropoff {
+enum class ResultCode {
+	SUCCESS = 0,
+	BUSY,
+	FAIL
+}; 
 
-typedef enum {
-	DROPOFF_STATE_IDLE = 0,
-	DROPOFF_STATE_CENTER,
-	DROPOFF_STATE_STACK_CUBE,
-	DROPOFF_STATE_FORWARD,
-	DROPOFF_STATE_DROP_CUBE,
-	DROPOFF_STATE_BACKUP
-} EDropoffState;
+enum class State {
+	IDLE = 0,
+	CENTER,
+	FORWARD,
+	DROP_CUBE,
+	BACKUP
+}; 
 
-struct DropOffResult {
+struct Result {
   geometry_msgs::Twist cmd_vel;
 	CGripCmd grip;
-	EDropoffState state;
-	EDropoffState nextState;
-	EDropoffResult result;
+	State state;
+	State nextState;
+	ResultCode result;
 	std::string status;
 };
 
@@ -35,15 +35,16 @@ class DropOffController
 	public:
 		DropOffController(void);
 		void reset(void);
-		DropOffResult execute(
+		Result execute(
 				const apriltags_ros::AprilTagDetectionArray& targets,
         const std::vector<geometry_msgs::Pose2D> &home_tags
 				);
 	private:
-		DropOffResult result;
+		Result result;
 		ros::Time stateStartTime; // start time for states
 		ros::Duration stateRunTime; // time since last state change
 		bool targetLost;
 		int missedTargetCount;
 };
+} // end namespace
 #endif // end header define

@@ -8,14 +8,14 @@ ObstacleController::ObstacleController(void) {
 
 void ObstacleController::reset(void) {
   count = 0;
-  result.state = State::IDLE;
+  result.state = result.nextState = State::IDLE;
   stateStartTime =  ros::Time::now();
 }
 
 bool Obstacle::obstacleDetected(const geometry_msgs::Point &ultrasound) {
   double distance = 0.5;
   return (ultrasound.x < distance || ultrasound.y < distance || 
-    ultrasound.z < distance);
+      ultrasound.z < distance);
 }
 
 /**
@@ -58,13 +58,23 @@ Result ObstacleController::execute(
       break;
     case State::FORWARD:
       result.cmd_vel.linear.x = 0.2;
-      if(stateRunTime > ros::Duration(2)) {
+      if(obstacle_detected) {
+        result.nextState = State::RIGHT2;
+      } else if(stateRunTime > ros::Duration(2)) {
         result.nextState = State::LEFT;
       }
       break;
-    case State::LEFT:
+    case State::RIGHT2:
       result.cmd_vel.angular.z = -0.5;
-      if(stateRunTime > ros::Duration(4)) {
+      if(stateRunTime > ros::Duration(1)) {
+        result.nextState = State::FORWARD;
+      }
+      break;
+    case State::LEFT:
+      result.cmd_vel.angular.z = 0.5;
+      if(obstacle_detected) {
+        result.nextState = State::RIGHT;
+      } else if(stateRunTime > ros::Duration(6)) {
         if (obstacle_detected) {
           count++;
           if(count > 3) {
@@ -77,6 +87,7 @@ Result ObstacleController::execute(
           result.nextState = State::IDLE;
         }
       }
+      break;
     case State::TURNAROUND:
       result.cmd_vel.angular.z = 0.3;
       if(stateRunTime > ros::Duration(3.0)) {
@@ -98,9 +109,9 @@ Result ObstacleController::execute(
     std::setprecision(1) <<" time: " << stateRunTime <<
     " nextState "<< (int)result.nextState  <<
     " result= " << (int)result.result <<
-    " obstacle= "<< obstacle_detected <<
     std::setprecision(2) <<
     " vel="<<result.cmd_vel.linear.x<<","<<result.cmd_vel.angular.z;
+  ss << " OBS "<< obstacle_detected <<","<< count << "("<<ultrasound.x<<","<<ultrasound.y<<","<<ultrasound.z<<")";
   result.status = ss.str();
   return result;
 }

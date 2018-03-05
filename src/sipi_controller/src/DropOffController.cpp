@@ -9,18 +9,21 @@
 #define CENTERING_DISTANCE 0.2		// how close to average tag location to be
 #define NUM_ALLOWED_MISSES 10
 #define CENTERING_YAW_ERROR 0.2		// open loop how fast to turn to center
+using namespace Dropoff; 
+
 DropOffController::DropOffController() {
-  //reset();
+  result.state = result.nextState = State::IDLE;
 }
+
 void DropOffController::reset(void) {
-  result.state = result.nextState = DROPOFF_STATE_IDLE;
-  result.result = DROPOFF_RESULT_SUCCESS;
+  result.state = result.nextState = State::IDLE;
+  result.result = ResultCode::SUCCESS;
   missedTargetCount = 0;
   targetLost = true;
   stateStartTime= ros::Time::now();
 }
 
-DropOffResult DropOffController::execute(
+Result DropOffController::execute(
     const apriltags_ros::AprilTagDetectionArray& targets,
     const std::vector<geometry_msgs::Pose2D> &home_tags
     ) 
@@ -29,7 +32,7 @@ DropOffResult DropOffController::execute(
   result.grip.fingersOpen = false;
   result.grip.wristPos = WRIST_UP;
   result.cmd_vel.linear.x = result.cmd_vel.angular.z = 0.0;
-  result.result = DROPOFF_RESULT_BUSY;
+  result.result = ResultCode::BUSY;
   // time since last state change
   if(result.nextState != result.state) {
     stateStartTime =  ros::Time::now();
@@ -57,16 +60,16 @@ DropOffResult DropOffController::execute(
   float distErr = blockDist - CENTERING_DISTANCE;
   // state machine switch
   switch(result.state) {
-    case DROPOFF_STATE_IDLE:
+    case State::IDLE:
       if(stateRunTime > ros::Duration(1.0)) {
         if(targetLost) {
-          result.result = DROPOFF_RESULT_FAIL;
+          result.result = ResultCode::FAIL;
         } else {
-          result.nextState = DROPOFF_STATE_FORWARD;
+          result.nextState = State::FORWARD;
         }
       }
       break;
-    case DROPOFF_STATE_CENTER:
+    case State::CENTER:
       // turn till nearest tag is centered
       //result.cmd_vel.angular.z = limit(-blockYawError, 0.2);
       if(tagInfo.leftCount > tagInfo.rightCount) {
@@ -76,46 +79,38 @@ DropOffResult DropOffController::execute(
       } 
       if(stateRunTime > ros::Duration(3.0)) {
         if(targetLost) {
-          result.result = DROPOFF_RESULT_FAIL;
+          result.result = ResultCode::FAIL;
         } else {
-          result.nextState = DROPOFF_STATE_STACK_CUBE;
+          result.nextState = State::FORWARD;
         } 
       }
       break;
-
-//
-    case DROPOFF_STATE_STACK_CUBE:
-      result.grip.wristPos = WRIST_VERIFY;
-      result.nextState = DROPOFF_STATE_FORWARD;
-      break;
-//
-
-    case DROPOFF_STATE_FORWARD:
+    case State::FORWARD:
       // forward for x seconds to get to clear area in center
       result.cmd_vel.linear.x = FORWARD_VEL;
       if(stateRunTime >= ros::Duration(APPROACH_TIME)) {
-        result.nextState = DROPOFF_STATE_DROP_CUBE;
+        result.nextState = State::DROP_CUBE;
       }
       break;
-    case DROPOFF_STATE_DROP_CUBE:
+    case State::DROP_CUBE:
       // open gripper, raise wrist, wait small delay for fingers to open
       result.grip.fingersOpen = true;
       if(stateRunTime >= ros::Duration(DROP_CUBE_TIME)) {
-        result.nextState = DROPOFF_STATE_BACKUP;
+        result.nextState = State::BACKUP;
       }
       break;
-    case DROPOFF_STATE_BACKUP:
+    case State::BACKUP:
       // backward for x seconds to get clear of base before continuing
       result.grip.fingersOpen = true;
       result.cmd_vel.linear.x = -FORWARD_VEL;
       if(stateRunTime >= ros::Duration(BACKUP_TIME)) {
-        result.nextState = DROPOFF_STATE_IDLE;
-        result.result = DROPOFF_RESULT_SUCCESS;
+        result.nextState = State::IDLE;
+        result.result = ResultCode::SUCCESS;
       }
       break;
   }
   std::ostringstream ss;
-  ss << "Dropoff State: "<<result.state <<
+  ss << "Dropoff State: "<<(int)result.state <<
     " stateRunTime= "<<std::setprecision(1) << stateRunTime<<
     " Tags: "<<tagInfo.leftCount<<","<<tagInfo.rightCount<<
     " Dist: "<<tagInfo.distance <<

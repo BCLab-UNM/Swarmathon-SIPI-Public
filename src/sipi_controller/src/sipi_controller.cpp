@@ -330,11 +330,11 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       cmd_vel_ = dropoffResult.cmd_vel;
       grip = dropoffResult.grip;
       // TODO check for success instead
-      if(dropoffResult.result == DROPOFF_RESULT_SUCCESS) {
+      if(dropoffResult.result == Dropoff::ResultCode::SUCCESS) {
         carryingCube = false;
         setGoalPose(searchController.getCurrentGoal());
         nextState = STATE_MACHINE_SEARCH;
-      } else if(dropoffResult.result != DROPOFF_RESULT_BUSY) {
+      } else if(dropoffResult.result != Dropoff::ResultCode::BUSY) {
         setGoalPose(0,0);
         nextState = STATE_MACHINE_RETURN;
       }

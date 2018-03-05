@@ -105,8 +105,8 @@ class sipi_controller {
     apriltags_ros::AprilTagDetectionArray tagDetectionArray;
     SDrivingStatus drivingResult;
     PickupController::Result pickupResult;
-    DropOffResult dropoffResult;
     FindHome::Result findResult;
+    Dropoff::Result dropoffResult;
     Obstacle::Result obstacleResult;
     AvoidResult avoidResult;
     ros::Time stateStartTime;
@@ -118,7 +118,7 @@ class sipi_controller {
     // controllers
     DrivingController drivingController;
     PickupController::PickUpController pickUpController;
-    DropOffController dropoffController;
+    Dropoff::DropOffController dropoffController;
     SearchController searchController;
     Obstacle::ObstacleController obstacleController;
     AvoidController avoidController;
