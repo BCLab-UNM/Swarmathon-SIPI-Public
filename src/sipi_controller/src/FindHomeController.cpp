@@ -1,51 +1,51 @@
 #include "sipi_controller/FindHomeController.h"
 //  This is a constructor.  it gets called when the program first runs.
 // this is where we need to create the list of goals. 
-FindHomeController::FindHomeController() {
+using namespace FindHome;
+
+Controller::Controller() {
 }
-void FindHomeController::reset(void) 
+void Controller::reset(void) 
 {
-	result.state = LOSER_STATE_IDLE;
-	result.result = LOSER_RESULT_BUSY;
+	result.state = State::IDLE;
+	result.result = ResultCode::BUSY;
 	result.status = "init";
-	incrementingYawError = 0.3;
 	startTime = ros::Time::now();
 }
 
-Finding_Home_Result FindHomeController::execute(
+Result Controller::execute(
 		int obstacleDetected, 
 		bool homeVisible
 		) 
 {
 	// time since last state change
-	result.result = LOSER_RESULT_BUSY;
+	result.result = ResultCode::BUSY;
 	dt = ros::Time::now() - startTime;
 	switch(result.state) {
-		case LOSER_STATE_IDLE:
+		case State::IDLE:
 			startTime = ros::Time::now();
-			result.state = LOSER_STATE_SEARCH;
-			result.cmd_vel.linear.x = 0.2;
-			result.cmd_vel.angular.z = 0.3;
+			result.state = State::SEARCH;
+			result.cmd_vel.linear.x = 0.0;
+			result.cmd_vel.angular.z = 0.0;
 			break;
-		case LOSER_STATE_SEARCH:
+		case State::SEARCH:
 			result.cmd_vel.linear.x = 0.2;
-			result.cmd_vel.angular.z = 0.3-(dt.toSec()/100.0);
+			result.cmd_vel.angular.z = 0.5-(dt.toSec()/100.0);
 			if(dt > ros::Duration(20.0)) {
-				result.state = LOSER_STATE_IDLE;
-				result.result = LOSER_RESULT_FAILED;
+				result.state = State::IDLE;
+				result.result = ResultCode::FAILED;
 			}
 			if(homeVisible) {
-				result.state = LOSER_STATE_IDLE;
-				result.result = LOSER_RESULT_SUCCESS;
+				result.state = State::IDLE;
+				result.result = ResultCode::SUCCESS;
 			}
 			break;
 	}
 	std::ostringstream ss;
-	ss << " FindHome state: "<< result.state << std::setprecision(2) <<
+	ss << " FindHome state: "<< (int)result.state << std::setprecision(2) <<
 		" time: " << dt <<
-		" state: " << result.state <<
 		" cmd: " << result.cmd_vel.linear.x << "," << result.cmd_vel.angular.z <<
-		" result= " << result.result;
+		" result= " << (int)result.result;
 	result.status = ss.str();
 	return result;
 }
