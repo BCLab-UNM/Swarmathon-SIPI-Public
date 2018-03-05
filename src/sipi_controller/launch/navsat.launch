@@ -5,7 +5,7 @@
   <node pkg="robot_localization" type="navsat_transform_node" 
     name="$(arg name)_NAVSAT" respawn="false">
       <param name="magnetic_declination_radians" value="0.0"/>
-      <param name="yaw_offset" value="1.57079630"/>
+      <param name="yaw_offset" value="0"/>
       <param name="frequency" value="10"/>
       <param name="zero_altitude" value="true"/>
       <param name="world_frame" value="map"/>

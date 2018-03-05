@@ -21,7 +21,7 @@ void Localization::execute(const std::vector<geometry_msgs::Pose2D> &home_tags){
   }
   poseArena = poseOdomToArena(poseOdom);
   tf_pub.sendTransform(tf::StampedTransform(tParentToChild, ros::Time::now(),
-    arenaFrame, odomFrame));
+    arenaFrame, mapFrame));
 
   std_msgs::String msg;
   std::ostringstream ss;
@@ -49,7 +49,7 @@ Localization::Localization(std::string _name, ros::NodeHandle _nh)
       &Localization::odomGPSHandler, this);
   status_publisher = mNH.advertise<std_msgs::String>((name + "/loc_status"), 1, true);
   arenaFrame = name+"/arena";
-  odomFrame = name+"/odom";
+  mapFrame = name+"/map";
   tf::Quaternion q;
   q.setRPY(0, 0, 0);
   tParentToChild.setRotation(q);

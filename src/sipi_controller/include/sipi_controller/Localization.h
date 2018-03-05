@@ -46,7 +46,7 @@ class Localization
 	private:
 		ros::NodeHandle  mNH;
 		std::string name;
-		std::string arenaFrame, odomFrame;
+		std::string arenaFrame, mapFrame;
 		ros::Publisher status_publisher;
 		ros::Subscriber odometrySubscriber;
 		ros::Subscriber odomGPSSubscriber;
@@ -55,7 +55,7 @@ class Localization
     geometry_msgs::Pose2D pose_visual;
 		tf::TransformListener *tfListener;
 		std::string statusMsg;
-    // store the last transform from map to odom frames
+    // store the last transform from map to arena frames
     tf::Transform tParentToChild;
     tf::TransformBroadcaster tf_pub;
 
