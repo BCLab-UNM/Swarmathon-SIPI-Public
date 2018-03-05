@@ -106,7 +106,7 @@ class sipi_controller {
     SDrivingStatus drivingResult;
     PickupController::Result pickupResult;
     DropOffResult dropoffResult;
-    Finding_Home_Result findResult;
+    FindHome::Result findResult;
     Obstacle::Result obstacleResult;
     AvoidResult avoidResult;
     ros::Time stateStartTime;
@@ -122,7 +122,7 @@ class sipi_controller {
     SearchController searchController;
     Obstacle::ObstacleController obstacleController;
     AvoidController avoidController;
-    FindHomeController findHomeController;
+    FindHome::Controller findHomeController;
     GripperController *gripperController;
     Localization *localization;
     int numberOfRovers; // how many rovers are active

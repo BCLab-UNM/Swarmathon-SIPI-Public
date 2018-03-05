@@ -78,10 +78,18 @@ DropOffResult DropOffController::execute(
         if(targetLost) {
           result.result = DROPOFF_RESULT_FAIL;
         } else {
-          result.nextState = DROPOFF_STATE_FORWARD;
+          result.nextState = DROPOFF_STATE_STACK_CUBE;
         } 
       }
       break;
+
+//
+    case DROPOFF_STATE_STACK_CUBE:
+      result.grip.wristPos = WRIST_VERIFY;
+      result.nextState = DROPOFF_STATE_FORWARD;
+      break;
+//
+
     case DROPOFF_STATE_FORWARD:
       // forward for x seconds to get to clear area in center
       result.cmd_vel.linear.x = FORWARD_VEL;

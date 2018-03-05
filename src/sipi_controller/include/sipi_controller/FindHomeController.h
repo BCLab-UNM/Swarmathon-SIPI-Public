@@ -5,38 +5,39 @@
 #include <geometry_msgs/Twist.h>
 #include "DrivingController.h"
 
-typedef enum {
-	LOSER_RESULT_SUCCESS = 0,
-	LOSER_RESULT_BUSY,
-	LOSER_RESULT_FAILED
-} Find_Home_Result;
+namespace FindHome {
 
-typedef enum {
-	LOSER_STATE_IDLE,	
-	LOSER_STATE_GOHOME,
-	LOSER_STATE_SEARCH,	
-	LOSER_STATE_CONTINGENCY	
-} Finding_Home_State;
+enum class ResultCode {
+	SUCCESS = 0,
+	BUSY,
+	FAILED
+};
 
-struct Finding_Home_Result {
+enum class State {
+	IDLE,	
+	SEARCH
+};
+
+struct Result {
 	geometry_msgs::Twist cmd_vel;
 
-	Finding_Home_State state;
-	Find_Home_Result result;
+	State state;
+	ResultCode result;
 	std::string status;
 };
-class FindHomeController
+
+class Controller
 {
  public:
-  FindHomeController();
+  Controller();
 	void reset(void);
-	Finding_Home_Result execute(
+	Result execute(
 		int obstacleDetected, 
 		bool homeVisible);
   ros::Time  startTime;
 	ros::Duration dt;
-	Finding_Home_Result result;
-	float incrementingYawError;
- 
+	Result result;
 };
+
+}
 #endif // end header define

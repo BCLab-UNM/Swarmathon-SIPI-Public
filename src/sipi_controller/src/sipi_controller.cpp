@@ -305,7 +305,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       findResult = findHomeController.execute(obstacle_detected, 
           homeVisible);
       cmd_vel_ = findResult.cmd_vel;
-      if(findResult.result == LOSER_RESULT_SUCCESS) {
+      if(findResult.result == FindHome::ResultCode::SUCCESS) {
         if(carryingCube)  {
           dropoffController.reset();
           nextState = STATE_MACHINE_DROPOFF;
@@ -316,7 +316,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       } else if(!carryingCube && blockVisible) {
         pickUpController.reset();
         nextState = STATE_MACHINE_PICKUP;
-      } else if(findResult.result == LOSER_RESULT_FAILED) {
+      } else if(findResult.result == FindHome::ResultCode::FAILED) {
         setGoalPose(0,0);
         nextState = STATE_MACHINE_RETURN;
       }
