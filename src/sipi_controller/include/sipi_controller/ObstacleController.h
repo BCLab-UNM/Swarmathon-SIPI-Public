@@ -18,8 +18,13 @@ enum class ResultCode {
 };
 
 enum class State : int {
-  IDLE,	// starting point
-  PAUSE,	
+  IDLE = 0,	// starting point
+  PAUSE = 1,
+  DECIDE,
+  GENTLE_TURN_RIGHT,
+  GENTLE_TURN_LEFT,
+  HARD_TURN_RIGHT,	
+  HARD_TURN_LEFT,	
   RIGHT,	
   FORWARD,
   RIGHT2,

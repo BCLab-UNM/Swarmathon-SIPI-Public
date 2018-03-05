@@ -17,6 +17,18 @@ bool Obstacle::obstacleDetected(const geometry_msgs::Point &ultrasound) {
   return (ultrasound.x < distance || ultrasound.y < distance || 
       ultrasound.z < distance);
 }
+bool obstacleLeft(const geometry_msgs::Point &ultrasound) {
+  double distance = 0.5;
+  return (ultrasound.x < distance);
+}
+bool obstacleRight(const geometry_msgs::Point &ultrasound) {
+  double distance = 0.5;
+  return (ultrasound.z < distance);
+}
+bool obstacleCenter(const geometry_msgs::Point &ultrasound) {
+  double distance = 0.5;
+  return (ultrasound.y < distance);
+}
 
 /**
  * The obstacle avoidance state machine
@@ -35,33 +47,71 @@ Result ObstacleController::execute(
 
   result.cmd_vel.angular.z = result.cmd_vel.linear.x = 0.0;
   result.result = ResultCode::BUSY;
+  bool left, right, center;
+  left = obstacleLeft(ultrasound);
+  right = obstacleRight(ultrasound);
+  center = obstacleCenter(ultrasound);
   switch(result.state) {
     case State::IDLE:
       count = 0;
       result.nextState = State::PAUSE;
       break;
     case State::PAUSE:
-      if(stateRunTime > ros::Duration(3.0)) {
+      if(stateRunTime > ros::Duration(1.0)) {
         if(obstacle_detected) {
-          result.nextState = State::RIGHT;
+          result.nextState = State::DECIDE;
         } else {
           result.result = ResultCode::SUCCESS;
           result.nextState = State::IDLE;
         }
       }
       break;
-    case State::RIGHT:
+        
+    case State::DECIDE:
+        if(obstacle_detected) {
+          if(left && !center && !right) result.nextState = State::GENTLE_TURN_RIGHT;
+          else if(!left && !center && right) result.nextState = State::GENTLE_TURN_LEFT;
+          else if(left && center && !right) result.nextState = State::HARD_TURN_RIGHT;
+          else if(!left && center && right) result.nextState = State::HARD_TURN_LEFT;
+          else result.nextState = State::HARD_TURN_RIGHT;
+        } else {
+          result.result = ResultCode::SUCCESS;
+          result.nextState = State::IDLE;
+        }
+      break;
+    case State::GENTLE_TURN_RIGHT:
+//      result.cmd_vel.linear.x = 0.2;
       result.cmd_vel.angular.z = -0.5;
-      if(stateRunTime > ros::Duration(4)) {
+      if(!obstacle_detected) {
         result.nextState = State::FORWARD;
+      }
+      break;
+    case State::GENTLE_TURN_LEFT:
+//      result.cmd_vel.linear.x = 0.2;
+      result.cmd_vel.angular.z = 0.5;
+      if(!obstacle_detected) {
+        result.nextState = State::FORWARD;
+      }
+      break;
+    case State::HARD_TURN_RIGHT:
+      result.cmd_vel.angular.z = -0.5;
+      if(!center) {
+        result.nextState = State::DECIDE;
+      }
+      break;
+    case State::HARD_TURN_LEFT:
+      result.cmd_vel.angular.z = 0.5;
+      if(!center) {
+        result.nextState = State::DECIDE;
       }
       break;
     case State::FORWARD:
       result.cmd_vel.linear.x = 0.2;
       if(obstacle_detected) {
-        result.nextState = State::RIGHT2;
-      } else if(stateRunTime > ros::Duration(2)) {
-        result.nextState = State::LEFT;
+        result.nextState = State::DECIDE;
+      } else if(stateRunTime > ros::Duration(1)) {
+        result.result = ResultCode::SUCCESS;
+        result.nextState = State::IDLE;
       }
       break;
     case State::RIGHT2:
