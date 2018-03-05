@@ -21,17 +21,18 @@ Result Controller::execute(
 	// time since last state change
 	result.result = ResultCode::BUSY;
 	dt = ros::Time::now() - startTime;
+	result.cmd_vel.linear.x = 0.0;
+	result.cmd_vel.angular.z = 0.0;
 	switch(result.state) {
 		case State::IDLE:
 			startTime = ros::Time::now();
 			result.state = State::SEARCH;
-			result.cmd_vel.linear.x = 0.0;
-			result.cmd_vel.angular.z = 0.0;
 			break;
 		case State::SEARCH:
-			result.cmd_vel.linear.x = 0.2;
-			result.cmd_vel.angular.z = 0.5-(dt.toSec()/100.0);
-			if(dt > ros::Duration(20.0)) {
+			//			result.cmd_vel.linear.x = 0.2;
+			//			result.cmd_vel.angular.z = 0.5-(dt.toSec()/100.0);
+			result.cmd_vel.angular.z = 0.7;
+			if(dt > ros::Duration(12.0)) {
 				result.state = State::IDLE;
 				result.result = ResultCode::FAILED;
 			}
@@ -51,20 +52,20 @@ Result Controller::execute(
 }
 
 #if 0
-	geometry_msgs::Pose2D goal;
-	// choose random heading
-	
-	for (int i = 0; i < 10; i++)
-	{
+geometry_msgs::Pose2D goal;
+// choose random heading
+
+for (int i = 0; i < 10; i++)
+{
 	float the = 1;
 	double angle = pow(the,i);
-//	double angle =(float)(rand() % 1000)/1000.0*(2.0*M_PI);
+	//	double angle =(float)(rand() % 1000)/1000.0*(2.0*M_PI);
 
 	//select new position from current location
 	goal.x = currentLocation.x + (1.0 * cos(angle));
 	goal.y = currentLocation.y + (1.0 * sin(angle));
-	
+
 	return goal;
-	}
+}
 }
 #endif

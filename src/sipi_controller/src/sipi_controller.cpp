@@ -317,7 +317,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         pickUpController.reset();
         nextState = STATE_MACHINE_PICKUP;
       } else if(findResult.result == FindHome::ResultCode::FAILED) {
-        setGoalPose(0,0);
+        setGoalPose(localization->getPoseUTM());
         nextState = STATE_MACHINE_RETURN;
       }
       status_stream << "FIND_HOME: " << 

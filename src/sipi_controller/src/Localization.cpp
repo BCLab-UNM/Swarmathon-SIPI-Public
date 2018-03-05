@@ -18,11 +18,16 @@ void Localization::execute(const std::vector<geometry_msgs::Pose2D> &home_tags){
     pose_visual.y = p_avg.x * sin(poseGPS.theta - M_PI);
     arena_offset.x = pose_visual.x - poseGPS.x; 
     arena_offset.y = pose_visual.y - poseGPS.y; 
+		utm_offset.x = -poseUTM.x;
+		utm_offset.y = -poseUTM.y;
   }
+		poseUTM_corrected.x = poseUTM.x + utm_offset.x;
+		poseUTM_corrected.y = poseUTM.y + utm_offset.y;
   poseArena = poseOdomToArena(poseOdom);
   tf_pub.sendTransform(tf::StampedTransform(tParentToChild, ros::Time::now(),
     arenaFrame, mapFrame));
 
+		std::cout << " UTM("<<poseUTM_corrected.x << ","<<poseUTM_corrected.y<<")\n";
   std_msgs::String msg;
   std::ostringstream ss;
   ss << std::fixed << std::setprecision(2) << 
@@ -31,7 +36,8 @@ void Localization::execute(const std::vector<geometry_msgs::Pose2D> &home_tags){
     ") GPS: ("<<poseGPS.x<<","<<poseGPS.y<<","<<poseGPS.theta<< ")"<<
     ") offset: ("<<arena_offset.x<<","<<arena_offset.y<<","<<arena_offset.theta<< ")"<<
     ") avg : ("<<p_avg.x<<","<<p_avg.y<< ")"<<
-    ") pose_visual : ("<<pose_visual.x<<","<<pose_visual.y<< ")"<<
+    ") pose_visual : ("<<pose_visual.x<<","<<pose_visual.y<< ")"<< 
+		" UTM("<<poseUTM_corrected.x << ","<<poseUTM_corrected.y<<")"<<
     statusMsg;
   msg.data = ss.str();
   status_publisher.publish(msg);
@@ -47,6 +53,8 @@ Localization::Localization(std::string _name, ros::NodeHandle _nh)
       &Localization::odometryHandler, this);
   odomGPSSubscriber = mNH.subscribe((name + "/odom/ekf"), 10, 
       &Localization::odomGPSHandler, this);
+  odomUTMSubscriber = mNH.subscribe((name + "/odom/utm"), 10, 
+      &Localization::odomUTMHandler, this);
   status_publisher = mNH.advertise<std_msgs::String>((name + "/loc_status"), 1, true);
   arenaFrame = name+"/arena";
   mapFrame = name+"/map";
@@ -54,6 +62,13 @@ Localization::Localization(std::string _name, ros::NodeHandle _nh)
   q.setRPY(0, 0, 0);
   tParentToChild.setRotation(q);
 
+}
+geometry_msgs::Pose2D Localization::getPoseUTM(void) 
+{
+	geometry_msgs::Pose2D pose;
+	pose.x = -poseUTM_corrected.x;
+	pose.y = -poseUTM_corrected.y;
+  return pose;
 }
 
 geometry_msgs::Pose2D Localization::getPoseOdom(void) 
@@ -159,4 +174,9 @@ void Localization::odomGPSHandler(const nav_msgs::Odometry::ConstPtr& message) {
   //Get theta rotation by converting quaternion orientation to pitch/roll/yaw
   poseGPS.theta = thetaFromQuat(message->pose.pose.orientation);
   //TODO trying to find bottleneck	poseArena = poseOdomToArena(poseOdom);
+}
+void Localization::odomUTMHandler(const nav_msgs::Odometry::ConstPtr& message) {
+  //Get (x,y) location directly from pose
+  poseUTM.x = message->pose.pose.position.x;
+  poseUTM.y = message->pose.pose.position.y;
 }

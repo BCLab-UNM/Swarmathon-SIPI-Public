@@ -28,6 +28,8 @@ class Localization
 		Localization(std::string _name, ros::NodeHandle _nh);
 		void odometryHandler(const nav_msgs::Odometry::ConstPtr& message);
 		void odomGPSHandler(const nav_msgs::Odometry::ConstPtr& message);
+		void odomUTMHandler(const nav_msgs::Odometry::ConstPtr& message);
+
 		geometry_msgs::Pose2D poseArenaToOdom( 
 				geometry_msgs::Pose2D poseArena2D
 				);
@@ -37,6 +39,7 @@ class Localization
 
     void execute(const std::vector<geometry_msgs::Pose2D> &home_tags);
 		geometry_msgs::Pose2D getPoseOdom(void); 
+		geometry_msgs::Pose2D getPoseUTM(void); 
 		geometry_msgs::Pose2D getPoseArena(void); 
 		geometry_msgs::Pose2D transformPose( 
 				geometry_msgs::Pose2D poseIn2D, // pose to transform
@@ -50,8 +53,10 @@ class Localization
 		ros::Publisher status_publisher;
 		ros::Subscriber odometrySubscriber;
 		ros::Subscriber odomGPSSubscriber;
+		ros::Subscriber odomUTMSubscriber;
 		geometry_msgs::Pose2D poseOdom, poseGPS, poseArena; 
 		geometry_msgs::Pose2D arena_offset; 
+		geometry_msgs::Pose2D utm_offset, poseUTM, poseUTM_corrected; 
     geometry_msgs::Pose2D pose_visual;
 		tf::TransformListener *tfListener;
 		std::string statusMsg;
