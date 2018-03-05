@@ -58,13 +58,23 @@ Result ObstacleController::execute(
       break;
     case State::FORWARD:
       result.cmd_vel.linear.x = 0.2;
-      if(stateRunTime > ros::Duration(2)) {
+      if(obstacle_detected) {
+        result.nextState = State::RIGHT2;
+      } else if(stateRunTime > ros::Duration(2)) {
         result.nextState = State::LEFT;
       }
       break;
-    case State::LEFT:
+    case State::RIGHT2:
       result.cmd_vel.angular.z = -0.5;
-      if(stateRunTime > ros::Duration(4)) {
+      if(stateRunTime > ros::Duration(1)) {
+        result.nextState = State::FORWARD;
+      }
+      break;
+    case State::LEFT:
+      result.cmd_vel.angular.z = 0.5;
+      if(obstacle_detected) {
+        result.nextState = State::RIGHT;
+      } else if(stateRunTime > ros::Duration(6)) {
         if (obstacle_detected) {
           count++;
           if(count > 3) {
@@ -77,6 +87,7 @@ Result ObstacleController::execute(
           result.nextState = State::IDLE;
         }
       }
+      break;
     case State::TURNAROUND:
       result.cmd_vel.angular.z = 0.3;
       if(stateRunTime > ros::Duration(3.0)) {

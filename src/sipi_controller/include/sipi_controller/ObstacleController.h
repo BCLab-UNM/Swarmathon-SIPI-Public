@@ -22,6 +22,7 @@ enum class State : int {
   PAUSE,	
   RIGHT,	
   FORWARD,
+  RIGHT2,
   LEFT,
   TURNAROUND,
   CENTER
