@@ -128,32 +128,9 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
     obstacle_count = 0;
   }
   /* 
-     if we were doing something and try to drive over home
-   */
-#if 1
-  if((homeSeen) && (state == STATE_MACHINE_SEARCH)) {
-    // remember what we were doing
-    if(drivingResult.cmd_vel.linear.x > 0) {
-      avoidPrevState = state;
-      avoidController.reset();
-      nextState = STATE_MACHINE_AVOID_HOME;
-    }
-  }
-#endif
-  /* 
      if we were doing something and hit an obstacle, then 
      switch to obstacle state
    */
-#if 1
-  if((obstacle_count > 5) && (state != STATE_MACHINE_OBSTACLE) &&
-      (state != STATE_MACHINE_MANUAL) && (state != STATE_MACHINE_PICKUP)
-      && (state != STATE_MACHINE_DROPOFF)) {
-    // remember what we were doing
-    prevState = state;
-    obstacleController.reset();
-    nextState = STATE_MACHINE_OBSTACLE;
-  }
-#endif
   // time since last state change
   if(nextState != state) {
     stateStartTime =  ros::Time::now();
@@ -363,17 +340,44 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       status_stream << "PICKUP: " << pickupResult.status;
       break;
   } /* end of switch() */
+
   // check if home tag visible.  if so, don't go forward to avoid
   // plowing targets off home base.
-  /*
-     if(homeVisible) {
-     switch(state) {
-     case STATE_MACHINE_DROPOFF:
-     case STATE_MACHINE_PICKUP:
-     case STATE_MACHINE_SEARCH:
-  //		cmd_vel_.linear.x = 0.0;
+#if 1
+  if(homeVisible) {
+    switch(state) {
+      case STATE_MACHINE_SEARCH:
+        if(cmd_vel_.linear.x > 0) {
+          avoidPrevState = state;
+          avoidController.reset();
+          cmd_vel_.linear.x = 0.0;
+          nextState = STATE_MACHINE_AVOID_HOME;
+        }
+        break;
+      case STATE_MACHINE_PICKUP:
+        status_stream << " Home visible while pickup, aborting! ";
+        nextState = STATE_MACHINE_SEARCH;
+        cmd_vel_.linear.x = 0.0;
+        break;
+      case STATE_MACHINE_OBSTACLE:
+        status_stream << " Home visible while avoiding obstacle, aborting! ";
+        cmd_vel_.linear.x = 0.0;
+        nextState = STATE_MACHINE_AVOID_HOME;
+        break;
+        //		cmd_vel_.linear.x = 0.0;
+    }
   }
-   */
+#endif
+#if 1
+  if((obstacle_count > 5) && (state != STATE_MACHINE_OBSTACLE) &&
+      (state != STATE_MACHINE_MANUAL) && (state != STATE_MACHINE_PICKUP)
+      && (state != STATE_MACHINE_DROPOFF && cmd_vel_.linear.x != 0.0)) {
+    // remember what we were doing
+    prevState = state;
+    obstacleController.reset();
+    nextState = STATE_MACHINE_OBSTACLE;
+  }
+#endif
   driveControlPublish.publish(cmd_vel_);
   gripperController->move(grip);
   status_stream << " cmd_vel_=" << cmd_vel_.linear.x <<

@@ -15,6 +15,7 @@ namespace AvoidHome {
   enum class State {
     IDLE,	// starting point
     PAUSE,	
+    BACKUP,
     RIGHT,	
     FORWARD
   };
