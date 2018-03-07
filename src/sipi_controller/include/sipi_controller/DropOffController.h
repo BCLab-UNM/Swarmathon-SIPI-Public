@@ -7,44 +7,42 @@
 #include "GripperController.h"
 #include "DrivingController.h"
 namespace Dropoff {
-enum class ResultCode {
-	SUCCESS = 0,
-	BUSY,
-	FAIL
-}; 
+	enum class ResultCode {
+		SUCCESS = 0,
+		BUSY,
+		FAIL
+	}; 
 
-enum class State {
-	IDLE = 0,
-	CENTER,
-	FORWARD,
-	DROP_CUBE,
-	BACKUP
-}; 
+	enum class State {
+		IDLE = 0,
+		CENTER,
+		FORWARDSTEER,
+		FORWARD,
+		DROP_CUBE,
+		BACKUP
+	}; 
 
-struct Result {
-  geometry_msgs::Twist cmd_vel;
-	CGripCmd grip;
-	State state;
-	State nextState;
-	ResultCode result;
-	std::string status;
-};
+	struct Result {
+		geometry_msgs::Twist cmd_vel;
+		CGripCmd grip;
+		State state;
+		State nextState;
+		ResultCode result;
+		std::string status;
+	};
 
-class DropOffController
-{
-	public:
-		DropOffController(void);
-		void reset(void);
-		Result execute(
-				const apriltags_ros::AprilTagDetectionArray& targets,
-        const std::vector<geometry_msgs::Pose2D> &home_tags
-				);
-	private:
-		Result result;
-		ros::Time stateStartTime; // start time for states
-		ros::Duration stateRunTime; // time since last state change
-		bool targetLost;
-		int missedTargetCount;
-};
+	class DropOffController
+	{
+		public:
+			DropOffController(void);
+			void reset(void);
+			Result execute(const std::vector<geometry_msgs::Pose2D> &home_tags);
+		private:
+			Result result;
+			ros::Time stateStartTime; // start time for states
+			ros::Duration stateRunTime; // time since last state change
+			bool targetLost;
+			int missedTargetCount;
+	};
 } // end namespace
 #endif // end header define
