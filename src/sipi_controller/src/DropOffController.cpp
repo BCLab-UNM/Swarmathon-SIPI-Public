@@ -80,21 +80,23 @@ Result DropOffController::execute(
 				result.nextState = State::IDLE;
 				result.result = ResultCode::FAIL;
 			}		
-			if (avg_tag.y > 0.01) result.cmd_vel.angular.z = 0.1;
-			else if (avg_tag.y < -0.01) result.cmd_vel.angular.z = -0.1;
+			if (avg_tag.y > 0.02) result.cmd_vel.angular.z = 0.2;
+			else if (avg_tag.y < -0.02) result.cmd_vel.angular.z = -0.2;
 			if(stateRunTime > ros::Duration(3.0)) {
 				result.nextState = State::FORWARDSTEER;
 			}
 			break;
 		case State::FORWARDSTEER:
+			// forward while adjusting to the center of home
 			result.cmd_vel.linear.x = 0.1;
 			result.cmd_vel.angular.z = limit(-avg_tag.theta, 0.2);
-			if(home_tags.empty() || stateRunTime > ros::Duration(3.0)) {
+			if(home_tags.empty() || stateRunTime > ros::Duration(5.0)) {
 				result.nextState = State::FORWARD;
 			}
 			break;
 		case State::FORWARD:
 			// forward for x seconds to get to clear area in center
+			result.grip.wristPos = WRIST_VERIFY;
 			result.cmd_vel.linear.x = 0.1;
 			if(stateRunTime >= ros::Duration(2.0)) {
 				result.nextState = State::DROP_CUBE;
@@ -103,14 +105,16 @@ Result DropOffController::execute(
 		case State::DROP_CUBE:
 			// open gripper, raise wrist, wait small delay for fingers to open
 			result.grip.fingersOpen = true;
-			if(stateRunTime >= ros::Duration(2.0)) {
+			result.grip.wristPos = WRIST_VERIFY;
+			if(stateRunTime >= ros::Duration(1.0)) {
 				result.nextState = State::BACKUP;
 			}
 			break;
 		case State::BACKUP:
 			// backward for x seconds to get clear of base before continuing
+			result.grip.wristPos = WRIST_VERIFY;
 			result.grip.fingersOpen = true;
-			result.cmd_vel.linear.x = -0.1;
+			result.cmd_vel.linear.x = -0.2;
 			if(stateRunTime >= ros::Duration(3.0)) {
 				result.nextState = State::IDLE;
 				result.result = ResultCode::SUCCESS;
