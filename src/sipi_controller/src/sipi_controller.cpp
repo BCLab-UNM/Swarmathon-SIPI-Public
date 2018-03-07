@@ -127,10 +127,6 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
   } else {
     obstacle_count = 0;
   }
-  /* 
-     if we were doing something and hit an obstacle, then 
-     switch to obstacle state
-   */
   // time since last state change
   if(nextState != state) {
     stateStartTime =  ros::Time::now();
@@ -303,7 +299,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       break;
     case STATE_MACHINE_DROPOFF: 
       // move to center of base, drop cube, back up, then continue search
-      dropoffResult = dropoffController.execute(tagDetectionArray, home_tags);
+      dropoffResult = dropoffController.execute(home_tags);
       cmd_vel_ = dropoffResult.cmd_vel;
       grip = dropoffResult.grip;
       // TODO check for success instead
@@ -368,7 +364,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
     }
   }
 #endif
-#if 1
+#if 0
   if((obstacle_count > 5) && (state != STATE_MACHINE_OBSTACLE) &&
       (state != STATE_MACHINE_MANUAL) && (state != STATE_MACHINE_PICKUP)
       && (state != STATE_MACHINE_DROPOFF && cmd_vel_.linear.x != 0.0)) {
