@@ -22,7 +22,7 @@ namespace AvoidHome {
   struct Result {
     geometry_msgs::Twist cmd_vel;
     State state;
-    State nextState;
+    State next_state_;
     ResultCode result;
     std::string status;
     int count;
@@ -34,7 +34,7 @@ namespace AvoidHome {
       Controller();
       void reset(void);
       Result result;
-      Result execute(bool homeVisible);
+      Result execute(const std::vector<geometry_msgs::Pose2D> &home_tags);
     private:
       int count;
       ros::Time stateStartTime; // start time for states

@@ -247,7 +247,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         " errorYaw= " << drivingResult.errorYaw;
       break;
     case STATE_MACHINE_AVOID_HOME: 
-      avoidResult = avoidController.execute(homeSeen);
+      avoidResult = avoidController.execute(home_tags);
       cmd_vel_ = avoidResult.cmd_vel;
       if(avoidResult.result != AvoidHome::ResultCode::BUSY) {
         nextState = avoidPrevState;

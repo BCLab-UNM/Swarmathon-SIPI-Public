@@ -8,21 +8,21 @@
 using namespace AvoidHome;
 
 Controller::Controller() {
-	result.state result.next_state = State::IDLE;
+	result.state  = result.next_state_ = State::IDLE;
 	//	reset();
 }
 void Controller::reset(void)
 {
 	count = 0;
-	result.state result.next_state = State::IDLE;
+	result.state = result.next_state_ = State::IDLE;
 	stateStartTime =  ros::Time::now();
 }
 
-Result Controller::execute(bool homeVisible) {
+Result Controller::execute(const std::vector<geometry_msgs::Pose2D> &home_tags) {
 	// time since last state change
-	if(result.nextState != result.state) {
+	if(result.next_state_ != result.state) {
 		stateStartTime =  ros::Time::now();
-		result.state = result.nextState;
+		result.state = result.next_state_;
 	}
 	stateRunTime = ros::Time::now() - stateStartTime;
 
@@ -31,29 +31,29 @@ Result Controller::execute(bool homeVisible) {
 	switch(result.state) {
 		case State::IDLE:
 			count = 0;
-			result.nextState = State::PAUSE;
+			result.next_state_ = State::PAUSE;
 			break;
 		case State::PAUSE:
 			if(stateRunTime > ros::Duration(PAUSE_TIME)) {
-				if(homeVisible) {
-					result.nextState = State::RIGHT;
+				if(home_tags.empty()) {
+					result.next_state_ = State::RIGHT;
 				} else {
 					result.result = ResultCode::SUCCESS;
-					result.nextState = State::IDLE;
+					result.next_state_ = State::IDLE;
 				}
 			}
 			break;
 		case State::RIGHT:
 			result.cmd_vel.angular.z = -TURN_VEL;
 			if(stateRunTime > ros::Duration(TURN_RIGHT_TIME)) {
-				result.nextState = State::FORWARD;
+				result.next_state_ = State::FORWARD;
 			}
 			break;
 		case State::FORWARD:
 			result.cmd_vel.linear.x = FORWARD_VEL;
 			if(stateRunTime > ros::Duration(FORWARD_TIME)) {
 				result.result = ResultCode::SUCCESS;
-				result.nextState = State::IDLE;
+				result.next_state_ = State::IDLE;
 			}
 			break;
 	}
@@ -61,7 +61,7 @@ Result Controller::execute(bool homeVisible) {
 	std::ostringstream ss;
 	ss << " state: "<< (int)result.state <<
 		std::setprecision(1) <<" time: " << stateRunTime <<
-		" nextState "<< (int)result.nextState  <<
+		" nextState "<< (int)result.next_state_  <<
 		" result= " << (int)result.result <<
 		std::setprecision(2) <<
 		" vel="<<result.cmd_vel.linear.x<<","<<result.cmd_vel.angular.z;
