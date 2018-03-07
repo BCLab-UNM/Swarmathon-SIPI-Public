@@ -115,7 +115,7 @@ Result DropOffController::execute(
 			result.grip.wristPos = WRIST_VERIFY;
 			result.grip.fingersOpen = true;
 			result.cmd_vel.linear.x = -0.2;
-			if(stateRunTime >= ros::Duration(3.0)) {
+			if(stateRunTime >= ros::Duration(3.0) && home_tags.empty()) {
 				result.nextState = State::IDLE;
 				result.result = ResultCode::SUCCESS;
 			}

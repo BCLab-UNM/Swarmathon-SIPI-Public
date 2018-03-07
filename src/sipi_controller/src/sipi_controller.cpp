@@ -352,7 +352,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         break;
       case STATE_MACHINE_PICKUP:
         status_stream << " Home visible while pickup, aborting! ";
-        nextState = STATE_MACHINE_SEARCH;
+          nextState = STATE_MACHINE_AVOID_HOME;
         cmd_vel_.linear.x = 0.0;
         break;
       case STATE_MACHINE_OBSTACLE:

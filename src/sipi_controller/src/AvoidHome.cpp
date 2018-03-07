@@ -44,36 +44,32 @@ Result Controller::execute(const std::vector<geometry_msgs::Pose2D> &home_tags) 
 			result.next_state_ = State::PAUSE;
 			break;
 		case State::PAUSE:
-			if(stateRunTime > ros::Duration(PAUSE_TIME)) {
+			if(stateRunTime > ros::Duration(1.0)) {
 				if(home_tags.empty()) {
-					result.next_state_ = State::RIGHT;
-				} else {
 					result.result = ResultCode::SUCCESS;
 					result.next_state_ = State::IDLE;
+				} else {
+					result.next_state_ = State::BACKUP;
 				}
 			}
 			break;
 		case State::BACKUP:
+        result.cmd_vel.linear.x = -0.1;
 				if(home_tags.empty()) {
-					result.result = ResultCode::SUCCESS;
-					result.next_state_ = State::IDLE;
-				} else {
-          if (nearestTagDistance(home_tags) < 0.3) {
-					result.result = ResultCode::SUCCESS;
-					result.next_state_ = State::IDLE;
-          } else {
-            result.cmd_vel.linear.x = -0.1;
-          }
+					result.next_state_ = State::RIGHT;
 				}
 		case State::RIGHT:
-			result.cmd_vel.angular.z = -TURN_VEL;
-			if(stateRunTime > ros::Duration(TURN_RIGHT_TIME)) {
+			result.cmd_vel.angular.z = -0.3;
+			if(stateRunTime > ros::Duration(3.0)) {
 				result.next_state_ = State::FORWARD;
 			}
 			break;
 		case State::FORWARD:
-			result.cmd_vel.linear.x = FORWARD_VEL;
-			if(stateRunTime > ros::Duration(FORWARD_TIME)) {
+			result.cmd_vel.linear.x = 0.1;
+			if (!home_tags.empty()) {
+					result.next_state_ = State::RIGHT;
+			}	
+			if(stateRunTime > ros::Duration(4.0)) {
 				result.result = ResultCode::SUCCESS;
 				result.next_state_ = State::IDLE;
 			}
