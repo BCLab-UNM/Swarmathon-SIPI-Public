@@ -249,7 +249,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
     case STATE_MACHINE_AVOID_HOME: 
       avoidResult = avoidController.execute(homeSeen);
       cmd_vel_ = avoidResult.cmd_vel;
-      if(avoidResult.result != AVOID_RESULT_BUSY) {
+      if(avoidResult.result != AvoidHome::ResultCode::BUSY) {
         nextState = avoidPrevState;
       }
       status_stream << "AVOID: " << 

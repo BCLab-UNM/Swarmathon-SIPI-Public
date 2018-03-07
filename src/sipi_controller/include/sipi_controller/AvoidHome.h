@@ -5,40 +5,40 @@
 #include <geometry_msgs/Twist.h>
 #include <random_numbers/random_numbers.h>
 #include "DrivingController.h"
+namespace AvoidHome {
+  enum class ResultCode {
+    SUCCESS = 0,
+    BUSY,
+    FAILED
+  };
 
-typedef enum {
-	AVOID_RESULT_SUCCESS = 0,
-	AVOID_RESULT_BUSY,
-	AVOID_RESULT_FAILED
-} EAvoidResult;
+  enum class State {
+    IDLE,	// starting point
+    PAUSE,	
+    RIGHT,	
+    FORWARD
+  };
 
-typedef enum {
-	AVOID_STATE_IDLE,	// starting point
-	AVOID_STATE_PAUSE,	
-	AVOID_STATE_RIGHT,	
-	AVOID_STATE_FORWARD,
-} EAvoidState;
+  struct Result {
+    geometry_msgs::Twist cmd_vel;
+    State state;
+    State nextState;
+    ResultCode result;
+    std::string status;
+    int count;
+  };
 
-struct AvoidResult {
-  geometry_msgs::Twist cmd_vel;
-	EAvoidState state;
-	EAvoidState nextState;
-	EAvoidResult result;
-	std::string status;
-	int count;
-};
+  class Controller {
 
-class AvoidController {
-
-	public:
-		AvoidController();
-		void reset(void);
-		AvoidResult result;
-		AvoidResult execute(bool homeVisible);
-	private:
-		int count;
-		ros::Time stateStartTime; // start time for states
-		ros::Duration stateRunTime; // time since last state change
-};
-
+    public:
+      Controller();
+      void reset(void);
+      Result result;
+      Result execute(bool homeVisible);
+    private:
+      int count;
+      ros::Time stateStartTime; // start time for states
+      ros::Duration stateRunTime; // time since last state change
+  };
+} // end namespace
 #endif 

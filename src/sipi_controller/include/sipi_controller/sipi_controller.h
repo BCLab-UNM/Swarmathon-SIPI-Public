@@ -108,7 +108,7 @@ class sipi_controller {
     FindHome::Result findResult;
     Dropoff::Result dropoffResult;
     Obstacle::Result obstacleResult;
-    AvoidResult avoidResult;
+    AvoidHome::Result avoidResult;
     ros::Time stateStartTime;
     ros::Duration stateRunTime;
     EStateMachineStates state;
@@ -121,7 +121,7 @@ class sipi_controller {
     Dropoff::DropOffController dropoffController;
     SearchController searchController;
     Obstacle::ObstacleController obstacleController;
-    AvoidController avoidController;
+    AvoidHome::Controller avoidController;
     FindHome::Controller findHomeController;
     GripperController *gripperController;
     Localization *localization;
