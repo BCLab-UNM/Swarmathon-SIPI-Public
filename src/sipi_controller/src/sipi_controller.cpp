@@ -1,7 +1,12 @@
 #include "sipi_controller/sipi_controller.h"
 
 #include <geometry_msgs/Pose2D.h>
+#include <stdlib.h>
+#include <time.h>
 ///////////////////////////////////////////////////////////////////
+float f_rand(float range) {
+  return (float)(rand()-RAND_MAX/2)/(float)(RAND_MAX/2)*range;
+}
 sipi_controller::sipi_controller(
     const std::string &name, 
     int argc, char** argv) {
@@ -78,8 +83,9 @@ sipi_controller::sipi_controller(
   infoLogPublisher.publish(msg);
 
   stateStartTime =  ros::Time::now();
+  srand (static_cast <unsigned> (time(0)));
+  cout << "RND:"<<f_rand(2) <<","<< f_rand(5) << ","<<f_rand(10);
 }
-
 void sipi_controller::stateMachine(const ros::TimerEvent&) {
   // publish state machine string 
   std::ostringstream poses;
@@ -290,7 +296,12 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         pickUpController.reset();
         nextState = STATE_MACHINE_PICKUP;
       } else if(findResult.result == FindHome::ResultCode::FAILED) {
-        setGoalPose(localization->getPoseUTM());
+        // see where GPS thinks we are and then go home based on that
+        geometry_msgs::Pose2D p = localization->getPoseUTM();
+        float angle = f_rand(M_PI*2.0); 
+        p.x = -p.x + 1.0*sin(angle);
+        p.y = -p.y + 1.0*cos(angle);
+        setGoalPose(p);
         nextState = STATE_MACHINE_RETURN;
       }
       status_stream << "FIND_HOME: " << 

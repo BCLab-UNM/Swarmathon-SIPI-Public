@@ -66,8 +66,8 @@ Localization::Localization(std::string _name, ros::NodeHandle _nh)
 geometry_msgs::Pose2D Localization::getPoseUTM(void) 
 {
 	geometry_msgs::Pose2D pose;
-	pose.x = -poseUTM_corrected.x;
-	pose.y = -poseUTM_corrected.y;
+	pose.x = poseUTM_corrected.x;
+	pose.y = poseUTM_corrected.y;
   return pose;
 }
 

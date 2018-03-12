@@ -265,8 +265,8 @@ void serialActivityTimer(const ros::TimerEvent& e) {
   os << "w," << wristAngle_cmd << "\n";
   os << "d\n";
   usb.sendData(os.str().c_str());
-  //ROS_INFO_STREAM(os.str());
   parseData(usb.readData());
+  //ROS_INFO_STREAM(os.str());
   publishRosTopics();
   calculateMotorCommands();
   sendToArduino();
