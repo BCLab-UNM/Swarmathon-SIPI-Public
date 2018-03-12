@@ -364,7 +364,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
     }
   }
 #endif
-#if 0
+#if 1
   if((obstacle_count > 5) && (state != STATE_MACHINE_OBSTACLE) &&
       (state != STATE_MACHINE_MANUAL) && (state != STATE_MACHINE_PICKUP)
       && (state != STATE_MACHINE_DROPOFF && cmd_vel_.linear.x != 0.0)) {

@@ -11,23 +11,16 @@
 void SearchController::fillPatternSpokes(float startAngle, float endAngle, float dist) 
 {
 	geometry_msgs::Pose2D goal;
-	for(float a = startAngle; a<=endAngle ; a+= ANGLE_STEP) {
-#if 0
-		goal.x = dist*cos(a);
-		goal.y = dist*sin(a);
-		goals.push_back(goal);
-#endif
-
-	
-	if (a > 0.5 && a < 0.81)
-	{
-		dist = dist + 0.33;
-	}
-	else if (a > 0.85 && a < 1.0)
-	{
-		dist = dist - 0.33;
-	}
-	else dist = dist;
+	for(float a = startAngle; a <= M_PI ; a+= ANGLE_STEP) {
+	    if (a > 0.5 && a < 0.81)
+	    {
+		  dist = dist + 0.33;
+	    }
+	    else if (a > 0.85 && a < 1.0)
+	    {
+		  dist = dist - 0.33;
+	    }
+	    else dist = dist;
 
 		goal.x = dist*cos(a);
 		goal.y = dist*sin(a);
