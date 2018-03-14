@@ -5,7 +5,7 @@ using namespace Obstacle;
 ObstacleController::ObstacleController(void) {
   result.state = result.nextState = State::IDLE;
 }
-
+#define MIN_DISTANCE 0.7
 void ObstacleController::reset(void) {
   count = 0;
   result.state = result.nextState = State::IDLE;
@@ -13,20 +13,20 @@ void ObstacleController::reset(void) {
 }
 
 bool Obstacle::obstacleDetected(const geometry_msgs::Point &ultrasound) {
-  double distance = 0.5;
+  double distance = MIN_DISTANCE;
   return (ultrasound.x < distance || ultrasound.y < distance || 
       ultrasound.z < distance);
 }
 bool obstacleLeft(const geometry_msgs::Point &ultrasound) {
-  double distance = 0.5;
+  double distance = MIN_DISTANCE;
   return (ultrasound.x < distance);
 }
 bool obstacleRight(const geometry_msgs::Point &ultrasound) {
-  double distance = 0.5;
+  double distance = MIN_DISTANCE;
   return (ultrasound.z < distance);
 }
 bool obstacleCenter(const geometry_msgs::Point &ultrasound) {
-  double distance = 0.5;
+  double distance = MIN_DISTANCE;
   return (ultrasound.y < distance);
 }
 

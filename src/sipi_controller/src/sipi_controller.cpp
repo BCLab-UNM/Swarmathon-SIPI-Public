@@ -1,6 +1,7 @@
 #include "sipi_controller/sipi_controller.h"
 
 #include <geometry_msgs/Pose2D.h>
+//#include "sipi_controller/PoseHelpers.h"
 #include <stdlib.h>
 #include <time.h>
 ///////////////////////////////////////////////////////////////////
@@ -151,7 +152,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
   if(stateRunTime > ros::Duration(watchdogTimeout) && 
       state != STATE_MACHINE_MANUAL) {
     ROS_ERROR_STREAM("Statemachine watchdog triggered!");
-    setGoalPose(0,0);
+    setGoalPoseArena(0,0);
     nextState = STATE_MACHINE_RETURN;
   }
 
@@ -194,7 +195,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         //currentPoseArena = localization->getPoseArena();
         searchController.createPattern(currentPoseArena, numberOfRovers);
         searchController.reset();
-        setGoalPose(searchController.getNextGoal());
+        setGoalPoseArena(searchController.getNextGoal());
         nextState = STATE_MACHINE_SEARCH;
       }
       status_stream << "INIT: " << 
@@ -207,7 +208,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       // go through search pattern goals
       if(stateRunTime > ros::Duration(30)) {
         ROS_WARN("Search timeout, going to next pose");
-        setGoalPose(searchController.getNextGoal());
+        setGoalPoseArena(searchController.getNextGoal());
       }
       drivingResult = drivingController.drive(currentPoseOdom, 
           goalPoseOdom, 0.2);
@@ -216,7 +217,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         pickUpController.reset();  
         nextState = STATE_MACHINE_PICKUP;
       } else if(!drivingResult.busy) {   // arrived at goal
-        setGoalPose(0,0);
+        setGoalPoseArena(0,0);
         nextState = STATE_MACHINE_RETURN;
       }
       status_stream << "SEARCH: " << 
@@ -262,7 +263,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
           dropoffController.reset();
           nextState = STATE_MACHINE_DROPOFF;
         } else {
-          setGoalPose(searchController.getNextGoal());
+          setGoalPoseArena(searchController.getNextGoal());
           nextState = STATE_MACHINE_SEARCH;
         }
       } else if(!carryingCube && blockVisible) {
@@ -289,7 +290,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
           dropoffController.reset();
           nextState = STATE_MACHINE_DROPOFF;
         } else {
-          setGoalPose(searchController.getNextGoal());
+          setGoalPoseArena(searchController.getNextGoal());
           nextState = STATE_MACHINE_SEARCH;
         }
       } else if(!carryingCube && blockVisible) {
@@ -297,11 +298,13 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         nextState = STATE_MACHINE_PICKUP;
       } else if(findResult.result == FindHome::ResultCode::FAILED) {
         // see where GPS thinks we are and then go home based on that
-        geometry_msgs::Pose2D p = localization->getPoseUTM();
-        float angle = f_rand(M_PI*2.0); 
-        p.x = -p.x + 1.0*sin(angle);
-        p.y = -p.y + 1.0*cos(angle);
-        setGoalPose(p);
+        geometry_msgs::Pose2D zeroPose;
+        geometry_msgs::Pose2D p = localization->poseUTMToOdom(zeroPose);
+        float angle = f_rand(M_PI); 
+        p.x = p.x + 1.0*sin(angle);
+        p.y = p.y + 1.0*cos(angle);
+        setGoalPoseOdom(p);
+        cout << "Goal is now " <<goalPoseOdom;
         nextState = STATE_MACHINE_RETURN;
       }
       status_stream << "FIND_HOME: " << 
@@ -316,10 +319,10 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       // TODO check for success instead
       if(dropoffResult.result == Dropoff::ResultCode::SUCCESS) {
         carryingCube = false;
-        setGoalPose(searchController.getCurrentGoal());
+        setGoalPoseArena(searchController.getCurrentGoal());
         nextState = STATE_MACHINE_SEARCH;
       } else if(dropoffResult.result != Dropoff::ResultCode::BUSY) {
-        setGoalPose(0,0);
+        setGoalPoseArena(0,0);
         nextState = STATE_MACHINE_RETURN;
       }
       status_stream << "DROPOFF: " << 
@@ -339,7 +342,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       grip = pickupResult.grip;
       if (pickupResult.result == PickupController::ResultCode::SUCCESS) {
         carryingCube = true;
-        setGoalPose(0,0);
+        setGoalPoseArena(0,0);
         nextState = STATE_MACHINE_RETURN;
       } else if (pickupResult.result == PickupController::ResultCode::FAILED) {
         nextState = STATE_MACHINE_SEARCH;
@@ -468,12 +471,16 @@ void sipi_controller::publishHeartBeatTimerEventHandler(const ros::TimerEvent&) 
 
 // set a new goal.  Input is 2D pose of goal in arena frame
 // transforms it to Odom using gps and visual tf
-void sipi_controller::setGoalPose(geometry_msgs::Pose2D pose) {
+void sipi_controller::setGoalPoseArena(geometry_msgs::Pose2D pose) {
   goalPoseArena = pose;
   goalPoseOdom = localization->poseArenaToOdom(pose);
 }
+void sipi_controller::setGoalPoseOdom(geometry_msgs::Pose2D pose) {
+  goalPoseArena = localization->poseOdomToArena(pose);
+  goalPoseOdom = pose;
+}
 
-void sipi_controller::setGoalPose(double x, double y) {
+void sipi_controller::setGoalPoseArena(double x, double y) {
   goalPoseArena.x = x;
   goalPoseArena.y = y;
   goalPoseOdom = localization->poseArenaToOdom(goalPoseArena);

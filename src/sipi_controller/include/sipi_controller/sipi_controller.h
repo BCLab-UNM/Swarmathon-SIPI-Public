@@ -152,8 +152,9 @@ class sipi_controller {
     geometry_msgs::Pose2D currentPoseArena;
     geometry_msgs::Pose2D goalPoseOdom;
     geometry_msgs::Pose2D goalPoseArena;
-    void setGoalPose(geometry_msgs::Pose2D pose);
-    void setGoalPose(double x, double y);
+    void setGoalPoseOdom(geometry_msgs::Pose2D pose);
+    void setGoalPoseArena(geometry_msgs::Pose2D pose);
+    void setGoalPoseArena(double x, double y);
     sensor_msgs::Joy lastJoyCmd;
     geometry_msgs::Point ultrasound;
 };
