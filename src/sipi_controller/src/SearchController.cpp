@@ -101,7 +101,7 @@ geometry_msgs::Pose2D SearchController::getNextGoal(void) {
 		currentGoal = 0;
 	}
 	geometry_msgs::Pose2D goal = goals[currentGoal];
-	ROS_INFO_STREAM("New Goal = "<<goal);
+	ROS_INFO_STREAM("Search controller New Goal = "<<goal);
 	return goal;
 }
 

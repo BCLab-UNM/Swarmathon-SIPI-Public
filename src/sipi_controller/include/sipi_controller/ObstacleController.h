@@ -21,16 +21,11 @@ enum class State : int {
   IDLE = 0,	// starting point
   PAUSE = 1,
   DECIDE,
-  GENTLE_TURN_RIGHT,
-  GENTLE_TURN_LEFT,
-  HARD_TURN_RIGHT,	
-  HARD_TURN_LEFT,	
-  RIGHT,	
-  FORWARD,
-  RIGHT2,
-  LEFT,
-  TURNAROUND,
-  CENTER
+  TURN_UNITL_CLEAR,
+  TURN_UNITL_PARALLEL,
+  FORWARD_PARALLEL,
+  TURN_TO_CHECK,	
+  FORWARD_CLEAR
 };
 
 struct Result {
@@ -51,8 +46,10 @@ class ObstacleController {
     ObstacleController(void);
     void reset(void);
     Result result;
-    Result execute(const geometry_msgs::Point &obstacles);
+    Result execute(const geometry_msgs::Point &obstacles, float heading);
   private:
+    int direction_;
+    float initial_heading;
     int count;
     ros::Time stateStartTime; // start time for states
     ros::Duration stateRunTime; // time since last state change

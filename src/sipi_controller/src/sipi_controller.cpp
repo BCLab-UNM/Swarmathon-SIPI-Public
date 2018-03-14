@@ -24,7 +24,7 @@ sipi_controller::sipi_controller(
   carryingCube = false;
   stateMachinePeriod = 0.1; // time between the state machine loop
   status_publish_interval = 1;
-  watchdogTimeout = 60;
+  watchdogTimeout = 75;
   targetDetected = false;
   targetCollected = false;
   homeVisible = false;
@@ -238,48 +238,62 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       break;
       // avoid an obstacle then continue
     case STATE_MACHINE_OBSTACLE: 
-      obstacleResult = obstacleController.execute(ultrasound);
-      cmd_vel_ = obstacleResult.cmd_vel;
-      if(obstacleResult.result == Obstacle::ResultCode::SUCCESS) {
-        nextState = prevState;
-      } else if(obstacleResult.result == 
-          Obstacle::ResultCode::FAILED) {
-        findHomeController.reset();
-        nextState = STATE_MACHINE_FIND_HOME;
+      if(blockVisible && !carryingCube && !obstacle_detected) {
+        pickUpController.reset();
+        nextState = STATE_MACHINE_PICKUP;
+      } else {
+        obstacleResult = obstacleController.execute(ultrasound, 
+            currentPoseOdom.theta);
+        cmd_vel_ = obstacleResult.cmd_vel;
+        if(obstacleResult.result == Obstacle::ResultCode::SUCCESS) {
+          nextState = prevState;
+        } else if(obstacleResult.result == 
+            Obstacle::ResultCode::FAILED) {
+          findHomeController.reset();
+          nextState = STATE_MACHINE_FIND_HOME;
+        }
       }
       status_stream << "OBSTACLE: " << 
         std::setprecision(1) << 
         stateRunTime << " : " << obstacleResult.status;
       break;
     case STATE_MACHINE_RETURN: 
-      // drive to base, dropoff when you see home base
-      grip.wristPos = WRIST_UP;
-      grip.fingersOpen = false;
-      drivingResult = drivingController.drive(currentPoseOdom, goalPoseOdom,
-          0.8);
-      cmd_vel_ = drivingResult.cmd_vel;
-      if(homeVisible) {
+      {
+        // drive to base, dropoff when you see home base
+        grip.wristPos = WRIST_UP;
+        grip.fingersOpen = false;
+        float return_speed;
         if(carryingCube) {
-          dropoffController.reset();
-          nextState = STATE_MACHINE_DROPOFF;
+          return_speed = 0.3;
         } else {
-          setGoalPoseArena(searchController.getNextGoal());
-          nextState = STATE_MACHINE_SEARCH;
+          return_speed = 0.2;
         }
-      } else if(!carryingCube && blockVisible) {
-        pickUpController.reset();
-        nextState = STATE_MACHINE_PICKUP;
-      } else if(!drivingResult.busy) {
-        // done driving, but not home
-        findHomeController.reset();
-        nextState = STATE_MACHINE_FIND_HOME;
+        drivingResult = drivingController.drive(currentPoseOdom, goalPoseOdom,
+            return_speed);
+        cmd_vel_ = drivingResult.cmd_vel;
+        if(homeVisible) {
+          if(carryingCube) {
+            dropoffController.reset();
+            nextState = STATE_MACHINE_DROPOFF;
+          } else {
+            setGoalPoseArena(searchController.getNextGoal());
+            nextState = STATE_MACHINE_SEARCH;
+          }
+        } else if(!carryingCube && blockVisible) {
+          pickUpController.reset();
+          nextState = STATE_MACHINE_PICKUP;
+        } else if(!drivingResult.busy) {
+          // done driving, but not home
+          findHomeController.reset();
+          nextState = STATE_MACHINE_FIND_HOME;
+        }
+        status_stream << "RETURN: " << 
+          poses.str() << goal_poses.str() <<
+          " dist= "<< drivingResult.distToGoal <<
+          " headingToGoal= "<< drivingResult.headingToGoal <<
+          " errorYaw= " << drivingResult.errorYaw;
+        break;
       }
-      status_stream << "RETURN: " << 
-        poses.str() << goal_poses.str() <<
-        " dist= "<< drivingResult.distToGoal <<
-        " headingToGoal= "<< drivingResult.headingToGoal <<
-        " errorYaw= " << drivingResult.errorYaw;
-      break;
     case STATE_MACHINE_FIND_HOME: 
       // if I went home but did not find it, search for it 	
       findResult = findHomeController.execute(obstacle_detected, 
@@ -366,7 +380,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         break;
       case STATE_MACHINE_PICKUP:
         status_stream << " Home visible while pickup, aborting! ";
-          nextState = STATE_MACHINE_AVOID_HOME;
+        nextState = STATE_MACHINE_AVOID_HOME;
         cmd_vel_.linear.x = 0.0;
         break;
       case STATE_MACHINE_OBSTACLE:
