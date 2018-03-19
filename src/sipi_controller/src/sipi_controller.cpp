@@ -193,9 +193,9 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
         init = true;
         numberOfRovers = countRovers();
         if(numberOfRovers > 3) {
-          arena_radius_ = 7.0;
+          arena_radius_ = 9.0;
         } else {
-          arena_radius_ = 10.0;
+          arena_radius_ = 5.0;
         }
         //currentPoseArena = localization->getPoseArena();
         searchController.createPattern(currentPoseArena, numberOfRovers);
@@ -211,9 +211,10 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       break;
     case STATE_MACHINE_SEARCH: 
       // go through search pattern goals
-      if(stateRunTime > ros::Duration(30)) {
+      if(stateRunTime > ros::Duration(60)) {
         ROS_WARN("Search timeout, going to next pose");
-        setGoalPoseArena(searchController.getNextGoal());
+        setGoalPoseArena(0,0);
+        nextState = STATE_MACHINE_RETURN;
       }
       drivingResult = drivingController.drive(currentPoseOdom, 
           goalPoseOdom, 0.2);
@@ -353,7 +354,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       break;
     case STATE_MACHINE_PICKUP: 
       // pickup cube 
-      if(stateRunTime > ros::Duration(30)) {
+      if(stateRunTime > ros::Duration(45)) {
         ROS_WARN("PICKUP_TIMEOUT exceeded in sipi_controller");
         nextState = STATE_MACHINE_SEARCH;
         break;
@@ -404,6 +405,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
   if(obstacle_count > 3) {
     geometry_msgs::Pose2D poseUTM = localization->getPoseUTM();
     float distance = sqrt(poseUTM.x*poseUTM.x+poseUTM.y*poseUTM.y);
+    status_stream << " dist " << distance << " arena_rad " << arena_radius_;
     if(distance > arena_radius_) {
       setGoalPoseArena(0,0);
       nextState = STATE_MACHINE_RETURN;

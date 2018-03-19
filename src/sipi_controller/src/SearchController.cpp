@@ -27,7 +27,10 @@ void SearchController::createPattern(
 {
 	// starting angle is just the angle from 0 to where the 
 	// swarmie started
+/*
 	float startAngle = atan2(startingPose.y,startingPose.x);
+*/
+  float startAngle = startingPose.theta - M_PI;
 	ROS_INFO_STREAM("Num Rovers = "<<numSwarmies<<
 			" my starting angle = " << startAngle/M_PI*180.0);
 	// end angle divides the arena by number of swarmies
