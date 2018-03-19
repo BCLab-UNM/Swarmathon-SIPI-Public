@@ -39,6 +39,7 @@ sipi_controller::sipi_controller(
   // used for calling code once but not in main
   init = false;
   avoidingObstacle = false;
+  arena_radius_ = 9.0;
 
   gripperController = new GripperController(mNH, name);
   localization = new Localization(name, mNH);
@@ -406,7 +407,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
     geometry_msgs::Pose2D poseUTM = localization->getPoseUTM();
     float distance = sqrt(poseUTM.x*poseUTM.x+poseUTM.y*poseUTM.y);
     status_stream << " dist " << distance << " arena_rad " << arena_radius_;
-    if(distance > arena_radius_) {
+    if(distance > arena_radius_ && state == STATE_MACHINE_SEARCH) {
       setGoalPoseArena(0,0);
       nextState = STATE_MACHINE_RETURN;
     } else if ((state != STATE_MACHINE_OBSTACLE) &&
