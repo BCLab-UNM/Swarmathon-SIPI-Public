@@ -157,6 +157,7 @@ class sipi_controller {
     void setGoalPoseArena(double x, double y);
     sensor_msgs::Joy lastJoyCmd;
     geometry_msgs::Point ultrasound;
+    float arena_radius_;
 };
 
 #endif // _SIPI_CONTROLLER_INCLUDE_SIPI_CONTROLLER_SIPI_CONTROLLER_H

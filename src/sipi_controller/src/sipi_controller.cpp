@@ -192,6 +192,11 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       if (stateRunTime > ros::Duration(1)) {
         init = true;
         numberOfRovers = countRovers();
+        if(numberOfRovers > 3) {
+          arena_radius_ = 7.0;
+        } else {
+          arena_radius_ = 10.0;
+        }
         //currentPoseArena = localization->getPoseArena();
         searchController.createPattern(currentPoseArena, numberOfRovers);
         searchController.reset();
@@ -396,13 +401,20 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
   }
 #endif
 #if 1
-  if((obstacle_count > 5) && (state != STATE_MACHINE_OBSTACLE) &&
-      (state != STATE_MACHINE_MANUAL) && (state != STATE_MACHINE_PICKUP)
-      && (state != STATE_MACHINE_DROPOFF && cmd_vel_.linear.x != 0.0)) {
-    // remember what we were doing
-    prevState = state;
-    obstacleController.reset();
-    nextState = STATE_MACHINE_OBSTACLE;
+  if(obstacle_count > 3) {
+    geometry_msgs::Pose2D poseUTM = localization->getPoseUTM();
+    float distance = sqrt(poseUTM.x*poseUTM.x+poseUTM.y*poseUTM.y);
+    if(distance > arena_radius_) {
+      setGoalPoseArena(0,0);
+      nextState = STATE_MACHINE_RETURN;
+    } else if ((state != STATE_MACHINE_OBSTACLE) &&
+        (state != STATE_MACHINE_MANUAL) && (state != STATE_MACHINE_PICKUP)
+        && (state != STATE_MACHINE_DROPOFF && cmd_vel_.linear.x != 0.0)) {
+      // remember what we were doing
+      prevState = state;
+      obstacleController.reset();
+      nextState = STATE_MACHINE_OBSTACLE;
+    }
   }
 #endif
   driveControlPublish.publish(cmd_vel_);

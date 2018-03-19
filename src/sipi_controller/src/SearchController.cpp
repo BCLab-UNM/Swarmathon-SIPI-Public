@@ -1,75 +1,25 @@
 #include "sipi_controller/SearchController.h"
 
-#define MAX_DIST 5  // how far from center to go
-#define MAX_DIST_FINALS 8  // how far from center to go
+#define MAX_DIST 10  // how far from center to go
+#define MAX_DIST_FINALS 20  // how far from center to go
 #define MIN_DIST 1  // how close to center to return
 #define ANGLE_STEP 0.1 // radians between spokes
 // if 0 draw circle if 1 draw square
 #define USE_SQUARE 0
+SearchController::SearchController() {
+       currentGoal = 0;
+}
 
 // spokes with constant radius, misses corners but avoids walls
 void SearchController::fillPatternSpokes(float startAngle, float endAngle, float dist) 
 {
 	geometry_msgs::Pose2D goal;
 	for(float a = startAngle; a <= M_PI ; a+= ANGLE_STEP) {
-	    if (a > 0.5 && a < 0.81)
-	    {
-		  dist = dist + 0.33;
-	    }
-	    else if (a > 0.85 && a < 1.0)
-	    {
-		  dist = dist - 0.33;
-	    }
-	    else dist = dist;
-
 		goal.x = dist*cos(a);
 		goal.y = dist*sin(a);
 		goals.push_back(goal);
-
 	}
 }
-geometry_msgs::Pose2D calcEndpoint(float a)
-{
-	geometry_msgs::Pose2D goal;
-	if(a <= M_PI_4) {
-		goal.x = MAX_DIST;
-		goal.y = MAX_DIST*tan(a);
-	} else if(M_PI_4 <= a && a <= 3.0*M_PI_4) {
-		goal.x = -MAX_DIST*tan(a - M_PI_2);
-		goal.y = MAX_DIST;
-	} else if(3.0*M_PI_4 <= a && a <= 5.0*M_PI_4) {
-		goal.x = -MAX_DIST;
-		goal.y = -MAX_DIST*tan(a - M_PI);
-	} else if(5.0*M_PI_4 <= a && a <= 7.0*M_PI_4) {
-		goal.x = MAX_DIST*tan(a - 3.0*M_PI_2);
-		goal.y = -MAX_DIST;
-	} else {
-		goal.x = MAX_DIST;
-		goal.y = MAX_DIST*tan(a-2.0*M_PI);
-	}
-	return goal;
-}
-// same as spokes but goes to corners
-// calc end point intersection of square and circle at angle a
-void SearchController::fillPatternSpokesSquare(
-		float startAngle, 
-		float endAngle) 
-{
-	geometry_msgs::Pose2D home;
-	home.x = 0; home.y = 0; goals.push_back(home);
-	for(float a = startAngle; a<=endAngle ; a+= ANGLE_STEP) {
-		goals.push_back(calcEndpoint(a));
-	}
-}
-SearchController::SearchController() {
-	currentGoal = 0;
-}
-/*
-// print to screen (just during testing)
-for(size_t i=0;i<goals.size();++i) {
-std::cout << goals[i];
-}
- */
 
 void SearchController::createPattern(
 		geometry_msgs::Pose2D startingPose,
