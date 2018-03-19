@@ -479,7 +479,7 @@ void sipi_controller::joyCmdHandler(
 
 void sipi_controller::publishStatusTimerEventHandler(const ros::TimerEvent&) {
   std_msgs::String msg;
-  msg.data = "online-SIPI";
+  msg.data = "SIPI";
   status_publisher.publish(msg);
 }
 
