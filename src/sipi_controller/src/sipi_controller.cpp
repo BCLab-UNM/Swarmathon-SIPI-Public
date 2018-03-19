@@ -213,7 +213,7 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       drivingResult = drivingController.drive(currentPoseOdom, 
           goalPoseOdom, 0.2);
       cmd_vel_ = drivingResult.cmd_vel;
-      if(blockVisible && !homeSeen) {
+      if(blockVisible && !homeSeen && !pickUpController.ignore_cubes()) {
         pickUpController.reset();  
         nextState = STATE_MACHINE_PICKUP;
       } else if(!drivingResult.busy) {   // arrived at goal
@@ -238,7 +238,8 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
       break;
       // avoid an obstacle then continue
     case STATE_MACHINE_OBSTACLE: 
-      if(blockVisible && !carryingCube && !obstacle_detected) {
+      if(blockVisible && !carryingCube && 
+          !pickUpController.ignore_cubes()) {
         pickUpController.reset();
         nextState = STATE_MACHINE_PICKUP;
       } else {
@@ -246,9 +247,11 @@ void sipi_controller::stateMachine(const ros::TimerEvent&) {
             currentPoseOdom.theta);
         cmd_vel_ = obstacleResult.cmd_vel;
         if(obstacleResult.result == Obstacle::ResultCode::SUCCESS) {
+          pickUpController.reset();
           nextState = prevState;
         } else if(obstacleResult.result == 
             Obstacle::ResultCode::FAILED) {
+          pickUpController.reset();
           findHomeController.reset();
           nextState = STATE_MACHINE_FIND_HOME;
         }

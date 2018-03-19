@@ -49,6 +49,7 @@ namespace PickupController {
           ); 
 
       void reset();
+      bool ignore_cubes(void) {return ignore_cubes_;};
     private:
       //yaw angle to target block 
       double blockYaw;
@@ -65,6 +66,8 @@ namespace PickupController {
       int missedTargetCount;
       // flag to indicate that the target is no longer visible
       bool targetLost;
+      int fail_count;
+      bool ignore_cubes_;
   };
 
 }

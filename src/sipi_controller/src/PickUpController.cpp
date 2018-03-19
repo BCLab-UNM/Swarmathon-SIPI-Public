@@ -29,6 +29,8 @@ void PickUpController::reset() {
   result.nextState = PickupController::State::IDLE;
   stateStartTime = ros::Time::now();
   targetLost = true;
+  fail_count = 0;
+  ignore_cubes_ = false;
 }
 
 bool selectNearestTarget(
@@ -159,7 +161,13 @@ Result PickUpController::execute(
           result.result = ResultCode::FAILED;
           result.nextState = PickupController::State::IDLE;
         } else {
-          result.nextState = PickupController::State::IDLE;
+          if(fail_count++ > 3) {
+            ignore_cubes_ = true;
+            result.result = ResultCode::FAILED;
+            result.nextState = PickupController::State::IDLE;
+          } else {
+            result.nextState = PickupController::State::IDLE;
+          }
         }
       }
       break;
