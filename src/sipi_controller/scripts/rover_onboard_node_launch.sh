@@ -27,9 +27,6 @@ findDevicePath() {
     done
 }
 
-echo "Loading calibration data and swarmie_control sketch"
-./load_swarmie_control_sketch.sh $2
-
 microcontrollerDevicePath=$(findDevicePath Arduino)
 if [ -z "$microcontrollerDevicePath" ]
 then
